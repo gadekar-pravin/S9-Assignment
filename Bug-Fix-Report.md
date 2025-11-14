@@ -42,8 +42,3 @@
 3. **Memory search** – Launch `modules/mcp_server_memory.py` in stdio mode, issue multiple `search_historical_conversations` queries, and verify responses arrive within timeout (<1 s) with semantic matches.
 
 *(When running these steps locally, re-run `process_documents` once to refresh FAISS artifacts and confirm `memory_faiss_index/*.json` are newer than the newest `memory/` file.)*
-
-## Follow-Up / Risks
-- Add automated coverage that exercises the `FURTHER_PROCESSING_REQUIRED` handoff so we catch regressions where planning ignores overrides.
-- Monitor the Ollama embedding endpoint used by the memory server; if it is offline we currently skip indexing, which would bring back slow linear scans.
-- Consider adding unit tests for MCP tools to ensure the returned schema matches the Pydantic models referenced in `models.py`.
