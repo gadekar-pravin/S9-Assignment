@@ -1,0 +1,19 @@
+[
+  {
+    "timestamp": 1763105280.306572,
+    "type": "run_metadata",
+    "text": "Started new session with input: Summarize this page: https://www.google.com/ at 2025-11-14T07:28:00.306574",
+    "tool_name": null,
+    "tool_args": null,
+    "tool_result": null,
+    "final_answer": null,
+    "tags": [
+      "run_start"
+    ],
+    "success": null,
+    "metadata": {
+      "start_time": "2025-11-14T12:58:00.306812",
+      "step": 0
+    }
+  }
+]

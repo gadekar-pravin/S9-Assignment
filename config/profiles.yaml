@@ -33,25 +33,26 @@ mcp_servers:
   - id: math
     script: mcp_server_1.py
     cwd: "/Users/pravingadekar/Documents/EAG2/S9 Share"
-    description: "Most used Math tools, including special string-int conversions, fibonacci, python sandbox, shell and sql related tools"
+    description: "Math, string, and code execution tools."
     capabilities: ["add", "subtract", "multiply", "divide", "power", "cbrt", "factorial", "remainder", "sin", "cos", "tan", "mine", "create_thumbnail", "strings_to_chars_to_int", "int_list_to_exponential_sum", "fibonacci_numbers"]
     basic_tools: [run_python_sandbox]
   - id: documents
     script: mcp_server_2.py
     cwd: "/Users/pravingadekar/Documents/EAG2/S9 Share"
-    description: "Load, search and extract within webpages, local PDFs or other documents. Web and document specialist"
+    description: "Load, search and extract from static files (PDFs, webpages, etc)."
     capabilities: ["search_stored_documents", "convert_webpage_url_into_markdown", "extract_pdf"]
     basic_tools: [convert_webpage_url_into_markdown, duckduckgo_search_results]
   - id: websearch
     script: mcp_server_3.py
     cwd: "/Users/pravingadekar/Documents/EAG2/S9 Share"
-    description: "Webtools to search internet for queries and fetch content for a specific web page"
+    description: "Live web search and webpage content fetching."
     capabilities: ["duckduckgo_search_results", "download_raw_html_from_url"]
     basic_tools: [duckduckgo_search_results]
-  # - id: memory
-  #   script: modules/mcp_server_memory.py
-  #   cwd: I:/TSAI/2025/EAG/Session 9/S9
-  #   description: "Tools to get Agent-User Conversation History (current session or all historical)"
-  #   capabilities: ["get_current_conversations", "search_historical_conversations"]
+  - id: memory
+    script: modules/mcp_server_memory.py
+    cwd: "/Users/pravingadekar/Documents/EAG2/S9 Share"
+    description: "Semantic search over all past agent-user conversations."
+    capabilities: ["search_historical_conversations"]
+    basic_tools: [search_historical_conversations]
   #   basic_tools: [get_current_conversations, search_historical_conversations]
 

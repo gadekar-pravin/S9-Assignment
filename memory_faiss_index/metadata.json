@@ -1,0 +1,128 @@
+[
+  {
+    "user_query": "How much Anmol singh paid for his DLF apartment via Capbridge?",
+    "final_answer": "Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110549/19354a/session-2025/11/14/session-1763110549-19354a.json",
+    "timestamp": 1763110558.8236952
+  },
+  {
+    "user_query": "User's current query: How much Anmol singh paid for his DLF apartment via Capbridge? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "final_answer": "Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110549/19354a/session-2025/11/14/session-1763110549-19354a.json",
+    "timestamp": 1763110587.399827
+  },
+  {
+    "user_query": "Summarize this page: https://theschoolof.ai/",
+    "final_answer": "The School of AI (TSAI) is an institution focused on AI study and research, offering programs in visual comprehension, NLP, and AI agent development. They have trained over 7000 students through programs like ERA (Large Language Models), EAG (AI Agents), and EPAi (Python for AI). EAG V2 is a comprehensive course on building advanced AI agentic systems, focusing on autonomous decision-making and interaction within web environments. ERA focuses on training Large Language Models from scratch.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763109463/5053fe/session-2025/11/14/session-1763109463-5053fe.json",
+    "timestamp": 1763109471.8549209
+  },
+  {
+    "user_query": "Find the ASCII values of characters in INDIA and then return sum of exponentials of those values",
+    "final_answer": "7.599822246093079e+33",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763101239/154c12/session-2025/11/14/session-1763101239-154c12.json",
+    "timestamp": 1763101243.262248
+  },
+  {
+    "user_query": "Summarize this page: https://theschoolof.ai/",
+    "final_answer": "The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs), EAG (AI Agents), and EPAi (Python for AI). They've trained over 7000 students. EAG V2 is a 20-session course on building advanced Agentic AI systems, covering topics from Transformers to multi-agent collaboration. ERA V4 focuses on training LLMs from scratch and requires a significant commitment.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110343/e51c0d/session-2025/11/14/session-1763110343-e51c0d.json",
+    "timestamp": 1763110350.530684
+  },
+  {
+    "user_query": "Summarize this page: https://theschoolof.ai/",
+    "final_answer": "The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs), EAG (focusing on AI Agents), and EPAi (Python for AI). They have trained over 7000 students. EAG V2 is a 20-session course teaching students to build advanced Agentic AI systems. ERA focuses on training LLMs from scratch and requires a significant commitment.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110343/e51c0d/session-2025/11/14/session-1763110343-e51c0d.json",
+    "timestamp": 1763110363.672123
+  },
+  {
+    "user_query": "Summarize this page: https://www.google.com/",
+    "final_answer": "This is the Google search homepage, offering services like Search, Images, Maps, and more. It also provides links to Advertising, Business Solutions, and company information.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763105733/20b2bf/session-2025/11/14/session-1763105733-20b2bf.json",
+    "timestamp": 1763105742.077292
+  },
+  {
+    "user_query": "Summarize this page: https://theschoolof.ai/",
+    "final_answer": "The School of AI (TSAI) offers courses on AI, machine learning, and deep learning. Their courses, ERA, EAG, and EPAi, have trained over 7000 students. ERA focuses on training LLMs from scratch, EAG focuses on agents, and EPAi is a Python programming for AI course. EAG V3 registrations are scheduled for April 2026. ERA V4 introduces a new course structure with real-world LLM training, practical CoreSet focus, multi-GPU ImageNet training, and quantization aware training.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763105733/20b2bf/session-2025/11/14/session-1763105733-20b2bf.json",
+    "timestamp": 1763105768.391945
+  },
+  {
+    "user_query": "Summarize this page: https://theschoolof.ai/",
+    "final_answer": "The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs from scratch), EAG (focusing on AI Agents), and EPAi (Python and programming for AI). EAG V2 covers building advanced Agentic AI systems, and registrations for EAG V3 are scheduled for April 2026. ERA focuses on training Large Language models from scratch and requires a significant commitment.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763108331/4633de/session-2025/11/14/session-1763108331-4633de.json",
+    "timestamp": 1763108346.017622
+  },
+  {
+    "user_query": "Summarize this page: https://theschoolof.ai/",
+    "final_answer": "The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs from scratch), EAG (focused on AI Agents), and EPAi (Python for AI). They have trained over 7000 students. The EAG V2 program covers building advanced Agentic AI systems and autonomous decision-making, with sessions on topics like Transformers, LLM internals, tool protocols, planning, agent architecture, and more. Registrations for EAG V3 are scheduled for April 2026. ERA focuses on training large language models from scratch and requires a significant time commitment.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763108331/4633de/session-2025/11/14/session-1763108331-4633de.json",
+    "timestamp": 1763108376.8274481
+  },
+  {
+    "user_query": "give a summary of this page: https://theschoolof.ai/",
+    "final_answer": "The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs from scratch), EAG (focusing on AI Agents), and EPAi (Python and programming for AI). They have trained over 7000 students. EAG V2 is a comprehensive course equipping students to build advanced Agentic AI systems. ERA V5 is scheduled for Feb 2026 and focuses on training Large Language Models from scratch.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763108331/4633de/session-2025/11/14/session-1763108331-4633de.json",
+    "timestamp": 1763108473.610527
+  },
+  {
+    "user_query": "User's current query: How much money did Anmol singh pay for that house ?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: User's current query: How much money did Anmol singh pay for that house ? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: User's current query: How much Anmol singh paid for his DLF apartment via Capbridge? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "final_answer": "Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763113417/b21d7e/session-2025/11/14/session-1763113417-b21d7e.json",
+    "timestamp": 1763113421.165384
+  },
+  {
+    "user_query": "User's current query: Summarize this page: https://theschoolof.ai/\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: Summarize this page: https://theschoolof.ai/\nAgent: The School of AI (TSAI) is an institution focused on AI study and research, offering programs in visual comprehension, NLP, and AI agent development. They have trained over 7000 students through programs like ERA (Large Language Models), EAG (AI Agents), and EPAi (Python for AI). EAG V2 is a comprehensive course on building advanced AI agentic systems, focusing on autonomous decision-making and interaction within web environments. ERA focuses on training Large Language Models from scratch.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: give a summary of this page: https://theschoolof.ai/\nAgent: The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs from scratch), EAG (focusing on AI Agents), and EPAi (Python and programming for AI). They have trained over 7000 students. EAG V2 is a comprehensive course equipping students to build advanced Agentic AI systems. ERA V5 is scheduled for Feb 2026 and focuses on training Large Language Models from scratch.",
+    "final_answer": "The School of AI (TSAI) is focused on AI study and research, offering programs like ERA (training LLMs), EAG (AI Agents), and EPAi (Python for AI). They've trained over 7000 students. EAG V2 teaches building advanced AI agentic systems, while ERA V5 (Feb 2026) focuses on training Large Language Models from scratch.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110498/26dbfc/session-2025/11/14/session-1763110498-26dbfc.json",
+    "timestamp": 1763110507.517102
+  },
+  {
+    "user_query": "User's current query: How much money did Anmol singh pay for the DLF apartment via Capbridge? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: User's current query: How much Anmol singh paid for his DLF apartment via Capbridge? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "final_answer": "Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110672/905665/session-2025/11/14/session-1763110672-905665.json",
+    "timestamp": 1763110674.9653828
+  },
+  {
+    "user_query": "User's current query: How much money did Anmol singh pay for that DLF apartment ? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: User's current query: How much Anmol singh paid for his DLF apartment via Capbridge? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "final_answer": "Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110672/905665/session-2025/11/14/session-1763110672-905665.json",
+    "timestamp": 1763110714.593977
+  },
+  {
+    "user_query": "User's current query: How much money did Anmol singh pay for that house ? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: User's current query: How much Anmol singh paid for his DLF apartment via Capbridge? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "final_answer": "Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110672/905665/session-2025/11/14/session-1763110672-905665.json",
+    "timestamp": 1763110740.468931
+  },
+  {
+    "user_query": "who is Anmol singh?",
+    "final_answer": "There are multiple people named Anmol Singh. One is a medical oncologist and hematologist, another is a financial markets expert and personal development coach, and another is a trading coach and founder of Live Traders.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110672/905665/session-2025/11/14/session-1763110672-905665.json",
+    "timestamp": 1763112620.1684349
+  },
+  {
+    "user_query": "User's current query: How much Anmol singh paid for his DLF apartment via Capbridge? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: User's current query: How much Anmol singh paid for his DLF apartment via Capbridge? \n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: How much Anmol singh paid for his DLF apartment via Capbridge?\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.\nAgent: Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "final_answer": "Anmol Singh paid approximately \u20b942.94 crore for his DLF apartment via Capbridge.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763110617/5f845c/session-2025/11/14/session-1763110617-5f845c.json",
+    "timestamp": 1763110620.9409862
+  }
+]

@@ -340,7 +340,10 @@ def process_documents():
 
             elif ext in [".html", ".htm", ".url"]:
                 mcp_log("INFO", f"Using Trafilatura to extract {file.name}")
-                markdown = extract_webpage(UrlInput(url=file.read_text().strip())).markdown
+                # Use the correctly named helper defined above
+                markdown = convert_webpage_url_into_markdown(
+                    UrlInput(url=file.read_text().strip())
+                ).markdown
 
             else:
                 # Fallback to MarkItDown for other formats
@@ -402,26 +405,10 @@ def ensure_faiss_ready():
 
 
 if __name__ == "__main__":
-    print("STARTING THE SERVER AT AMAZING LOCATION")
+    print("mcp_server_2.py starting")
 
     if len(sys.argv) > 1 and sys.argv[1] == "dev":
-        mcp.run() # Run without transport for dev server
+        mcp.run()  # Run without transport for dev server
     else:
-        # Start the server in a separate thread
-        import threading
-        server_thread = threading.Thread(target=lambda: mcp.run(transport="stdio"))
-        server_thread.daemon = True
-        server_thread.start()
-        
-        # Wait a moment for the server to start
-        time.sleep(2)
-        
-        # Process documents after server is running
-        process_documents()
-        
-        # Keep the main thread alive
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("\nShutting down...")
+        mcp.run(transport="stdio")  # Proper stdio mode, no extra threads/side-effects
+        print("\nShutting down...")

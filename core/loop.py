@@ -36,7 +36,13 @@ class AgentLoop:
             while lifelines_left >= 0:
                 # === Perception ===
                 user_input_override = getattr(self.context, "user_input_override", None)
-                perception = await run_perception(context=self.context, user_input=user_input_override or self.context.user_input)
+                # Use the override if we have intermediate tool output, otherwise fall back
+                effective_user_input = user_input_override or self.context.user_input
+
+                perception = await run_perception(
+                    context=self.context,
+                    user_input=effective_user_input,
+                )
 
                 print(f"[perception] {perception}")
 
@@ -53,8 +59,9 @@ class AgentLoop:
                     exploration_mode=self.context.agent_profile.strategy.exploration_mode,
                 )
 
+                # ✅ Use the same effective user input for planning
                 plan = await generate_plan(
-                    user_input=self.context.user_input,
+                    user_input=effective_user_input,
                     perception=perception,
                     memory_items=self.context.memory.get_session_items(),
                     tool_descriptions=tool_descriptions,

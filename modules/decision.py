@@ -35,10 +35,19 @@ async def generate_plan(
 
     prompt_template = load_prompt(prompt_path)
 
-    prompt = prompt_template.format(
-        tool_descriptions=tool_descriptions,
-        user_input=user_input
-    )
+    prompt = prompt_template
+    replacements = {
+        "{tool_descriptions}": tool_descriptions or "None",
+        "{user_input}": user_input or "",
+        "{memory_texts}": memory_texts,
+        "{step_num}": str(step_num),
+        "{max_steps}": str(max_steps),
+    }
+
+    for placeholder, value in replacements.items():
+        prompt = prompt.replace(placeholder, str(value))
+
+    prompt = prompt.replace("{{", "{").replace("}}", "}")
 
 
     try:

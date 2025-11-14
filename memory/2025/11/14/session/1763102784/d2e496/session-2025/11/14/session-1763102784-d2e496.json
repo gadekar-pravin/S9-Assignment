@@ -1,0 +1,53 @@
+[
+  {
+    "timestamp": 1763102784.75486,
+    "type": "run_metadata",
+    "text": "Started new session with input: Summarize this page: https://www.google.com/ at 2025-11-14T06:46:24.754862",
+    "tool_name": null,
+    "tool_args": null,
+    "tool_result": null,
+    "final_answer": null,
+    "tags": [
+      "run_start"
+    ],
+    "success": null,
+    "metadata": {
+      "start_time": "2025-11-14T12:16:24.755261",
+      "step": 0
+    }
+  },
+  {
+    "timestamp": 1763103073.649566,
+    "type": "run_metadata",
+    "text": "Started new session with input: Summarize this page: https://www.google.com/ at 2025-11-14T06:51:13.649568",
+    "tool_name": null,
+    "tool_args": null,
+    "tool_result": null,
+    "final_answer": null,
+    "tags": [
+      "run_start"
+    ],
+    "success": null,
+    "metadata": {
+      "start_time": "2025-11-14T12:21:13.649600",
+      "step": 0
+    }
+  },
+  {
+    "timestamp": 1763104157.366383,
+    "type": "run_metadata",
+    "text": "Started new session with input:  at 2025-11-14T07:09:17.366389",
+    "tool_name": null,
+    "tool_args": null,
+    "tool_result": null,
+    "final_answer": null,
+    "tags": [
+      "run_start"
+    ],
+    "success": null,
+    "metadata": {
+      "start_time": "2025-11-14T12:39:17.366411",
+      "step": 0
+    }
+  }
+]

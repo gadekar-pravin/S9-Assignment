@@ -145,7 +145,7 @@ def fibonacci_numbers(input: FibonacciInput) -> FibonacciOutput:
     print("CALLED: fibonacci_numbers(FibonacciInput) -> FibonacciOutput")
     n = input.n
     if n <= 0:
-        return FibonacciOutput(sequence=[])
+        return FibonacciOutput(result=[])
     fib_sequence = [0, 1]
     for _ in range(2, n):
         fib_sequence.append(fib_sequence[-1] + fib_sequence[-2])
