@@ -8,7 +8,15 @@ from core.context import MemoryItem, AgentContext
 import datetime
 from pathlib import Path
 import json
+import warnings
 from heuristic_rules import apply_input_heuristics
+
+# Quiet noisy SWIG-related DeprecationWarnings emitted by third-party deps.
+warnings.filterwarnings(
+    "ignore",
+    message=r"builtin type (?:SwigPyPacked|SwigPyObject|swigvarlink) has no __module__ attribute",
+    category=DeprecationWarning,
+)
 
 
 def log(stage: str, msg: str):

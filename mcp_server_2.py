@@ -96,8 +96,15 @@ Just respond in one word (Yes or No), and do not provide any further explanation
 
 
 
+def _wrap_text_response(payload: dict) -> types.CallToolResult:
+    """Return a JSON payload that downstream plans can json.loads()."""
+    return types.CallToolResult(
+        content=[TextContent(type="text", text=json.dumps(payload))]
+    )
+
+
 @mcp.tool()
-def search_stored_documents(input: SearchDocumentsInput) -> list[str]:
+def search_stored_documents(input: SearchDocumentsInput) -> types.CallToolResult:
     """Search documents to get relevant extracts. Usage: input={"input": {"query": "your query"}} result = await mcp.call_tool('search_stored_documents', input)"""
 
     ensure_faiss_ready()
@@ -107,14 +114,17 @@ def search_stored_documents(input: SearchDocumentsInput) -> list[str]:
         index = faiss.read_index(str(ROOT / "faiss_index" / "index.bin"))
         metadata = json.loads((ROOT / "faiss_index" / "metadata.json").read_text())
         query_vec = get_embedding(query ).reshape(1, -1)
-        D, I = index.search(query_vec, k=5)
+        _, I = index.search(query_vec, k=5)
         results = []
         for idx in I[0]:
+            if idx == -1:
+                continue
             data = metadata[idx]
             results.append(f"{data['chunk']}\n[Source: {data['doc']}, ID: {data['chunk_id']}]")
-        return results
+        return _wrap_text_response({"result": results})
     except Exception as e:
-        return [f"ERROR: Failed to search: {str(e)}"]
+        mcp_log("ERROR", f"Failed search for '{query}': {e}")
+        return _wrap_text_response({"error": str(e), "result": []})
 
 
 def caption_image(img_url_or_path: str) -> str:
