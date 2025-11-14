@@ -32,25 +32,25 @@ persona:
 mcp_servers:
   - id: math
     script: mcp_server_1.py
-    cwd: "/Users/pravingadekar/Documents/EAG2/S9 Share"
+    cwd: "/Users/pravingadekar/Documents/EAG2/S9-Assignment"
     description: "Math, string, and code execution tools."
     capabilities: ["add", "subtract", "multiply", "divide", "power", "cbrt", "factorial", "remainder", "sin", "cos", "tan", "mine", "create_thumbnail", "strings_to_chars_to_int", "int_list_to_exponential_sum", "fibonacci_numbers"]
     basic_tools: [run_python_sandbox]
   - id: documents
     script: mcp_server_2.py
-    cwd: "/Users/pravingadekar/Documents/EAG2/S9 Share"
+    cwd: "/Users/pravingadekar/Documents/EAG2/S9-Assignment"
     description: "Load, search and extract from static files (PDFs, webpages, etc)."
     capabilities: ["search_stored_documents", "convert_webpage_url_into_markdown", "extract_pdf"]
     basic_tools: [convert_webpage_url_into_markdown, duckduckgo_search_results]
   - id: websearch
     script: mcp_server_3.py
-    cwd: "/Users/pravingadekar/Documents/EAG2/S9 Share"
+    cwd: "/Users/pravingadekar/Documents/EAG2/S9-Assignment"
     description: "Live web search and webpage content fetching."
     capabilities: ["duckduckgo_search_results", "download_raw_html_from_url"]
     basic_tools: [duckduckgo_search_results]
   - id: memory
     script: modules/mcp_server_memory.py
-    cwd: "/Users/pravingadekar/Documents/EAG2/S9 Share"
+    cwd: "/Users/pravingadekar/Documents/EAG2/S9-Assignment"
     description: "Semantic search over all past agent-user conversations."
     capabilities: ["search_historical_conversations"]
     basic_tools: [search_historical_conversations]

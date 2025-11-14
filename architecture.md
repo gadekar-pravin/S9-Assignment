@@ -1138,7 +1138,10 @@ memory:
 
 ### Overall System Architecture
 
-![Cortex-R architecture diagram (2375×1544)](images/architecture.png)
+<div align="center">
+  <img src="images/architecture.png" alt="Cortex-R architecture diagram showing the perception, decision, action, and memory loops" width="100%">
+  <p><em>Figure 1. Cortex-R architecture overview (2375 × 1544)</em></p>
+</div>
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
