@@ -49,6 +49,13 @@
     "timestamp": 1763132963.305443
   },
   {
+    "user_query": "User's current query: What is the relationship between Gensol and Go-Auto?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: What is the relationship between Gensol and Go-Auto?\nAgent: The search results indicate a questionable relationship between Gensol and Go-Auto, characterized by fund diversions and related-party transactions.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: User's current query: What is the relationship between Gensol and Go-Auto?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: What is the relationship between Gensol and Go-Auto?\nAgent: The search results indicate a questionable relationship between Gensol and Go-Auto, characterized by fund diversions and related-party transactions.\nAgent: The search results indicate a questionable relationship between Gensol and Go-Auto, characterized by fund diversions and related-party transactions.",
+    "final_answer": "The search results indicate a questionable relationship between Gensol and Go-Auto, characterized by fund diversions and related-party transactions.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763132953/31b743/session-2025/11/14/session-1763132953-31b743.json",
+    "timestamp": 1763132980.8853
+  },
+  {
     "user_query": "User's current query: What is the relationship between Gensol and Go-Auto?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: What is the relationship between Gensol and Go-Auto?\nAgent: The search results indicate a questionable relationship between Gensol and Go-Auto, characterized by fund diversions and related-party transactions.",
     "final_answer": "The search results indicate a questionable relationship between Gensol and Go-Auto, characterized by fund diversions and related-party transactions.",
     "intent": null,
@@ -110,6 +117,13 @@
     "intent": null,
     "source_file": "memory/2025/11/14/session/1763113417/b21d7e/session-2025/11/14/session-1763113417-b21d7e.json",
     "timestamp": 1763113421.165384
+  },
+  {
+    "user_query": "Who won the Bihar 2025 assembly election?",
+    "final_answer": "NDA won the Bihar 2025 assembly election.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763137823/44ef43/session-2025/11/14/session-1763137823-44ef43.json",
+    "timestamp": 1763137848.621815
   },
   {
     "user_query": "User's current query: Summarize this page: https://theschoolof.ai/\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: Summarize this page: https://theschoolof.ai/\nAgent: The School of AI (TSAI) is an institution focused on AI study and research, offering programs in visual comprehension, NLP, and AI agent development. They have trained over 7000 students through programs like ERA (Large Language Models), EAG (AI Agents), and EPAi (Python for AI). EAG V2 is a comprehensive course on building advanced AI agentic systems, focusing on autonomous decision-making and interaction within web environments. ERA focuses on training Large Language Models from scratch.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: give a summary of this page: https://theschoolof.ai/\nAgent: The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs from scratch), EAG (focusing on AI Agents), and EPAi (Python and programming for AI). They have trained over 7000 students. EAG V2 is a comprehensive course equipping students to build advanced Agentic AI systems. ERA V5 is scheduled for Feb 2026 and focuses on training Large Language Models from scratch.",

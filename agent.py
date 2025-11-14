@@ -163,4 +163,5 @@ if __name__ == "__main__":
 # which course are we teaching on Canvas LMS? "H:\DownloadsH\How to use Canvas LMS.pdf"
 # Summarize this page: https://theschoolof.ai/
 # Summarize this page: https://www.google.com/
-# What is the log value of the amount that Anmol singh paid for his DLF apartment via Capbridge? 
+# What is the log value of the amount that Anmol singh paid for his DLF apartment via Capbridge?
+# Who won the Bihar 2025 assembly election?
