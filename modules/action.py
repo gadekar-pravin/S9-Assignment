@@ -43,6 +43,13 @@ async def run_python_sandbox(code: str, dispatcher: Any) -> str:
                     raise RuntimeError(f"Exceeded max tool calls ({MAX_TOOL_CALLS_PER_PLAN}) in solve() plan.")
                 # REAL tool call now
                 result = await self.dispatcher.call_tool(tool_name, input_dict)
+                preview = ""
+                if getattr(result, "content", None):
+                    first = result.content[0]
+                    preview_text = getattr(first, "text", "")
+                    if isinstance(preview_text, str):
+                        preview = preview_text[:120]
+                log("sandbox", f"Tool '{tool_name}' returned preview: {preview!r}")
                 return result
 
         sandbox.mcp = SandboxMCP(dispatcher)

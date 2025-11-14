@@ -28,6 +28,27 @@
     "timestamp": 1763101243.262248
   },
   {
+    "user_query": "User's current query: Who won the Bihar 2025 assembly election?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: Who won the Bihar 2025 assembly election?\nAgent: NDA won the Bihar 2025 assembly election.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: User's current query: Who won the Bihar 2025 assembly election?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: Who won the Bihar 2025 assembly election?\nAgent: NDA won the Bihar 2025 assembly election.\nAgent: According to my past conversations, NDA won the Bihar 2025 assembly election.",
+    "final_answer": "According to my past conversations, NDA won the Bihar 2025 assembly election.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763139850/aa18ca/session-2025/11/14/session-1763139850-aa18ca.json",
+    "timestamp": 1763139855.174758
+  },
+  {
+    "user_query": "What is the factorial of 3.3?",
+    "final_answer": "The factorial function only accepts integers.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763139850/aa18ca/session-2025/11/14/session-1763139850-aa18ca.json",
+    "timestamp": 1763140573.750342
+  },
+  {
+    "user_query": "User's current query: What is the factorial of 3?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: What is the factorial of 3.3?\nAgent: The factorial function only accepts integers.",
+    "final_answer": "6",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763139850/aa18ca/session-2025/11/14/session-1763139850-aa18ca.json",
+    "timestamp": 1763140595.034954
+  },
+  {
     "user_query": "Summarize this page: https://theschoolof.ai/",
     "final_answer": "The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs), EAG (AI Agents), and EPAi (Python for AI). They've trained over 7000 students. EAG V2 is a 20-session course on building advanced Agentic AI systems, covering topics from Transformers to multi-agent collaboration. ERA V4 focuses on training LLMs from scratch and requires a significant commitment.",
     "intent": null,
@@ -124,6 +145,13 @@
     "intent": null,
     "source_file": "memory/2025/11/14/session/1763137823/44ef43/session-2025/11/14/session-1763137823-44ef43.json",
     "timestamp": 1763137848.621815
+  },
+  {
+    "user_query": "User's current query: Who won the Bihar 2025 assembly election?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: Who won the Bihar 2025 assembly election?\nAgent: NDA won the Bihar 2025 assembly election.",
+    "final_answer": "According to my past conversations, NDA won the Bihar 2025 assembly election.",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763137823/44ef43/session-2025/11/14/session-1763137823-44ef43.json",
+    "timestamp": 1763137981.0363169
   },
   {
     "user_query": "User's current query: Summarize this page: https://theschoolof.ai/\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: Summarize this page: https://theschoolof.ai/\nAgent: The School of AI (TSAI) is an institution focused on AI study and research, offering programs in visual comprehension, NLP, and AI agent development. They have trained over 7000 students through programs like ERA (Large Language Models), EAG (AI Agents), and EPAi (Python for AI). EAG V2 is a comprehensive course on building advanced AI agentic systems, focusing on autonomous decision-making and interaction within web environments. ERA focuses on training Large Language Models from scratch.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: give a summary of this page: https://theschoolof.ai/\nAgent: The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs from scratch), EAG (focusing on AI Agents), and EPAi (Python and programming for AI). They have trained over 7000 students. EAG V2 is a comprehensive course equipping students to build advanced Agentic AI systems. ERA V5 is scheduled for Feb 2026 and focuses on training Large Language Models from scratch.",

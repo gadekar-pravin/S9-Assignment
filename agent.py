@@ -165,3 +165,5 @@ if __name__ == "__main__":
 # Summarize this page: https://www.google.com/
 # What is the log value of the amount that Anmol singh paid for his DLF apartment via Capbridge?
 # Who won the Bihar 2025 assembly election?
+# What is the factorial of 3?
+# What is the cube root of 27?
