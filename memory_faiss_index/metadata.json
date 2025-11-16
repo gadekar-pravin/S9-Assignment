@@ -49,6 +49,13 @@
     "timestamp": 1763140595.034954
   },
   {
+    "user_query": "What is the cube root of 27?",
+    "final_answer": "3.0",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763139850/aa18ca/session-2025/11/14/session-1763139850-aa18ca.json",
+    "timestamp": 1763140807.5484328
+  },
+  {
     "user_query": "Summarize this page: https://theschoolof.ai/",
     "final_answer": "The School of AI (TSAI) is an institution focused on AI study and research, offering programs like ERA (training LLMs), EAG (AI Agents), and EPAi (Python for AI). They've trained over 7000 students. EAG V2 is a 20-session course on building advanced Agentic AI systems, covering topics from Transformers to multi-agent collaboration. ERA V4 focuses on training LLMs from scratch and requires a significant commitment.",
     "intent": null,
@@ -208,5 +215,19 @@
     "intent": null,
     "source_file": "memory/2025/11/14/session/1763131791/ac1139/session-2025/11/14/session-1763131791-ac1139.json",
     "timestamp": 1763131853.850409
+  },
+  {
+    "user_query": "User's current query: What is the factorial of 3?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: What is the factorial of 3.3?\nAgent: The factorial function only accepts integers.\n\n---\n\nOn 2025-11-14, you had this exchange:\nUser: User's current query: What is the factorial of 3?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: What is the factorial of 3.3?\nAgent: The factorial function only accepts integers.\nAgent: 6",
+    "final_answer": "6",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763141906/d03679/session-2025/11/14/session-1763141906-d03679.json",
+    "timestamp": 1763141909.16329
+  },
+  {
+    "user_query": "User's current query: What is the cube root of 27?\n\nFor your reference, here is some highly relevant context from your past conversations. Use this to inform your answer:\n\nOn 2025-11-14, you had this exchange:\nUser: What is the cube root of 27?\nAgent: 3.0",
+    "final_answer": "3.0",
+    "intent": null,
+    "source_file": "memory/2025/11/14/session/1763141906/d03679/session-2025/11/14/session-1763141906-d03679.json",
+    "timestamp": 1763141925.543763
   }
 ]
