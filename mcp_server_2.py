@@ -1,424 +1,202 @@
-from mcp.server.fastmcp import FastMCP, Image
-from mcp.server.fastmcp.prompts import base
-from mcp.types import TextContent
-from mcp import types
-from PIL import Image as PILImage
-import math
-import sys
+# mcp_server_2.py
+
 import os
+import sys
+import asyncio
+from typing import List, Dict, Any, Optional
 import json
 import faiss
 import numpy as np
 from pathlib import Path
-import requests
-from markitdown import MarkItDown
-import time
-from models import AddInput, AddOutput, SqrtInput, SqrtOutput, StringsToIntsInput, StringsToIntsOutput, ExpSumInput, ExpSumOutput, PythonCodeInput, PythonCodeOutput, UrlInput, FilePathInput, MarkdownInput, MarkdownOutput, ChunkListOutput, SearchDocumentsInput
-from tqdm import tqdm
-import hashlib
-from pydantic import BaseModel
-import subprocess
-import sqlite3
-import trafilatura
+from mcp.server.server import Server
+from mcp.server.process import ProcessTransport
+from mcp.common.tools import Tool, ToolResult
+from modules.model_manager import ModelManager
 import pymupdf4llm
-import re
-import base64 # ollama needs base64-encoded-image
+from trafilatura import fetch_url, extract
+from markdownify import markdownify as md
 
+# --- Document Indexing and RAG ---
 
-mcp = FastMCP("Calculator")
+class DocumentIndexer:
+    """
+    Manages the indexing and searching of documents for Retrieval-Augmented Generation (RAG).
 
-EMBED_URL = "http://localhost:11434/api/embeddings"
-OLLAMA_CHAT_URL = "http://localhost:11434/api/chat"
-OLLAMA_URL = "http://localhost:11434/api/generate"
-EMBED_MODEL = "nomic-embed-text"
-GEMMA_MODEL = "gemma3:12b"
-PHI_MODEL = "phi4:latest"
-QWEN_MODEL = "qwen2.5:32b-instruct-q4_0 "
-CHUNK_SIZE = 256
-CHUNK_OVERLAP = 40
-MAX_CHUNK_LENGTH = 512  # characters
-TOP_K = 3  # FAISS top-K matches
-ROOT = Path(__file__).parent.resolve()
+    This class handles the creation of a FAISS index from documents in a specified directory.
+    It can convert PDFs and web pages to text, generate embeddings, and perform semantic searches.
 
+    Attributes:
+        docs_dir (Path): The directory where source documents are stored.
+        index_dir (Path): The directory for storing the FAISS index and metadata.
+        index_path (Path): The path to the FAISS index file.
+        metadata_path (Path): The path to the metadata file.
+        model (ModelManager): The manager for accessing embedding models.
+        index (Optional[faiss.Index]): The FAISS index.
+        metadata (List[Dict[str, Any]]): Metadata for the indexed document chunks.
+    """
+    def __init__(self, docs_dir: str = "documents", index_dir: str = "faiss_index"):
+        """
+        Initializes the DocumentIndexer.
 
-def get_embedding(text: str) -> np.ndarray:
-    result = requests.post(EMBED_URL, json={"model": EMBED_MODEL, "prompt": text})
-    result.raise_for_status()
-    return np.array(result.json()["embedding"], dtype=np.float32)
+        Args:
+            docs_dir (str): The directory containing source documents.
+            index_dir (str): The directory to store the FAISS index.
+        """
+        self.docs_dir = Path(docs_dir)
+        self.index_dir = Path(index_dir)
+        self.index_path = self.index_dir / "index.bin"
+        self.metadata_path = self.index_dir / "metadata.json"
 
-def chunk_text(text, size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
-    words = text.split()
-    for i in range(0, len(words), size - overlap):
-        yield " ".join(words[i:i+size])
+        self.docs_dir.mkdir(exist_ok=True)
+        self.index_dir.mkdir(exist_ok=True)
 
-def mcp_log(level: str, message: str) -> None:
-    sys.stderr.write(f"{level}: {message}\n")
-    sys.stderr.flush()
+        self.model = ModelManager()
+        self.index = None
+        self.metadata = []
 
-# === CHUNKING ===
-
-
-
-
-
-def are_related(chunk1: str, chunk2: str, index: int) -> bool:
-    prompt = f"""
-You are helping to segment a document into topic-based chunks. Unfortunately, the sentences are mixed up.
-
-CHUNK 1: "{chunk1}"
-CHUNK 2: "{chunk2}"
-
-Should these two chunks appear in the **same paragraph or flow of writing**?
-
-Even if the subject changes slightly (e.g., One person to another), treat them as related **if they belong to the same broader context or topic** (like cricket, AI, or real estate). 
-
-Also consider cues like continuity words (e.g., "However", "But", "Also") or references that link the sentences.
-
-Answer with:
-Yes – if the chunks should appear together in the same paragraph or section  
-No – if they are about different topics and should be separated
-
-Just respond in one word (Yes or No), and do not provide any further explanation.
-"""
-    print(f"\n🔍 Comparing chunk {index} and {index+1}")
-    print(f"  Chunk {index} → {chunk1[:60]}{'...' if len(chunk1) > 60 else ''}")
-    print(f"  Chunk {index+1} → {chunk2[:60]}{'...' if len(chunk2) > 60 else ''}")
-
-    result = requests.post(OLLAMA_CHAT_URL, json={
-        "model": PHI_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "stream": False
-    })
-    result.raise_for_status()
-    reply = result.json().get("message", {}).get("content", "").strip().lower()
-    print(f"  ✅ Model reply: {reply}")
-    return reply.startswith("yes")
-
-
-
-def _wrap_text_response(payload: dict) -> types.CallToolResult:
-    """Return a JSON payload that downstream plans can json.loads()."""
-    return types.CallToolResult(
-        content=[TextContent(type="text", text=json.dumps(payload))]
-    )
-
-
-@mcp.tool()
-def search_stored_documents(input: SearchDocumentsInput) -> types.CallToolResult:
-    """Search documents to get relevant extracts. Usage: input={"input": {"query": "your query"}} result = await mcp.call_tool('search_stored_documents', input)"""
-
-    ensure_faiss_ready()
-    query = input.query
-    mcp_log("SEARCH", f"Query: {query}")
-    try:
-        index = faiss.read_index(str(ROOT / "faiss_index" / "index.bin"))
-        metadata = json.loads((ROOT / "faiss_index" / "metadata.json").read_text())
-        query_vec = get_embedding(query ).reshape(1, -1)
-        _, I = index.search(query_vec, k=5)
-        results = []
-        for idx in I[0]:
-            if idx == -1:
-                continue
-            data = metadata[idx]
-            results.append(f"{data['chunk']}\n[Source: {data['doc']}, ID: {data['chunk_id']}]")
-        return _wrap_text_response({"result": results})
-    except Exception as e:
-        mcp_log("ERROR", f"Failed search for '{query}': {e}")
-        return _wrap_text_response({"error": str(e), "result": []})
-
-
-def caption_image(img_url_or_path: str) -> str:
-    mcp_log("CAPTION", f"🖼️ Attempting to caption image: {img_url_or_path}")
-
-    full_path = Path(__file__).parent / "documents" / img_url_or_path
-    full_path = full_path.resolve()
-
-    if not full_path.exists():
-        mcp_log("ERROR", f"❌ Image file not found: {full_path}")
-        return f"[Image file not found: {img_url_or_path}]"
-
-    try:
-        if img_url_or_path.startswith("http"): # for extract_web_pages
-            result = requests.get(img_url_or_path)
-            encoded_image = base64.b64encode(result.content).decode("utf-8")
+    async def initialize(self):
+        """
+        Initializes the indexer by loading an existing index or creating a new one.
+        """
+        if self.index_path.exists() and self.metadata_path.exists():
+            self.load_index()
         else:
-            with open(full_path, "rb") as img_file:
-                encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
+            await self.build_index()
 
-        # Set stream=True to get the full generator-style output
-        with requests.post(OLLAMA_URL, json={
-            "model": GEMMA_MODEL,
-            "prompt": "If there is lot of text in the image, then ONLY reply back with exact text in the image, else Describe the image such that your result can replace 'alt-text' for it. Only explain the contents of the image and provide no further explaination.",
-            "images": [encoded_image],
-            "stream": True
-        }, stream=True) as result:
+    def load_index(self):
+        """Loads the FAISS index and metadata from disk."""
+        print("Loading existing FAISS index...")
+        self.index = faiss.read_index(str(self.index_path))
+        with open(self.metadata_path, "r") as f:
+            self.metadata = json.load(f)
+        print(f"Index loaded with {self.index.ntotal} vectors.")
 
-            caption_parts = []
-            for line in result.iter_lines():
-                if not line:
-                    continue
-                try:
-                    data = json.loads(line)
-                    caption_parts.append(data.get("result", ""))
-                    if data.get("done", False):
-                        break
-                except json.JSONDecodeError:
-                    continue  # silently skip malformed lines
+    async def build_index(self):
+        """Builds a new FAISS index from the documents in the documents directory."""
+        print("Building new FAISS index...")
+        all_chunks = []
+        all_metadata = []
 
-            caption = "".join(caption_parts).strip()
-            mcp_log("CAPTION", f"✅ Caption generated: {caption}")
-            return caption if caption else "[No caption returned]"
+        for doc_path in self.docs_dir.iterdir():
+            if doc_path.is_file():
+                print(f"Processing document: {doc_path.name}")
+                content = pymupdf4llm.to_markdown(doc_path)
 
-    except Exception as e:
-        mcp_log("ERROR", f"⚠️ Failed to caption image {img_url_or_path}: {e}")
-        return f"[Image could not be processed: {img_url_or_path}]"
+                # Simple chunking by paragraph
+                chunks = [chunk.strip() for chunk in content.split("\n\n") if chunk.strip()]
+                all_chunks.extend(chunks)
+                all_metadata.extend([{"source": doc_path.name, "content": chunk} for chunk in chunks])
 
+        if not all_chunks:
+            print("No documents found to index.")
+            return
 
+        print(f"Generating embeddings for {len(all_chunks)} chunks...")
+        embeddings = [await self.model.generate_embedding(chunk) for chunk in all_chunks]
+        embeddings_np = np.array(embeddings).astype('float32')
 
+        dimension = embeddings_np.shape[1]
+        self.index = faiss.IndexFlatL2(dimension)
+        self.index.add(embeddings_np)
+        self.metadata = all_metadata
 
+        faiss.write_index(self.index, str(self.index_path))
+        with open(self.metadata_path, "w") as f:
+            json.dump(self.metadata, f)
 
-def replace_images_with_captions(markdown: str) -> str:
-    def replace(match):
-        alt, src = match.group(1), match.group(2)
-        try:
-            caption = caption_image(src)
-            # Attempt to delete only if local and file exists
-            if not src.startswith("http"):
-                img_path = Path(__file__).parent / "documents" / src
-                if img_path.exists():
-                    img_path.unlink()
-                    mcp_log("INFO", f"🗑️ Deleted image after captioning: {img_path}")
-            return f"**Image:** {caption}"
-        except Exception as e:
-            mcp_log("WARN", f"Image deletion failed: {e}")
-            return f"[Image could not be processed: {src}]"
+        print(f"Index built and saved with {self.index.ntotal} vectors.")
 
-    return re.sub(r'!\[(.*?)\]\((.*?)\)', replace, markdown)
+    async def search(self, query: str, k: int = 5) -> ToolResult:
+        """
+        Searches the document index for a given query.
 
+        Args:
+            query (str): The search query.
+            k (int): The number of results to return.
 
-@mcp.tool()
-def convert_webpage_url_into_markdown(input: UrlInput) -> MarkdownOutput:
-    """Return clean webpage content without Ads, and clutter. Usage: input={{"input": {{"url": "https://example.com"}}}} result = await mcp.call_tool('convert_webpage_url_into_markdown', input)"""
+        Returns:
+            ToolResult: A ToolResult containing the search results.
+        """
+        if self.index is None:
+            return ToolResult(content=[{"text": "Index not initialized."}], success=False)
 
-    downloaded = trafilatura.fetch_url(input.url)
+        query_embedding = await self.model.generate_embedding(query)
+        query_embedding_np = np.array([query_embedding]).astype('float32')
+
+        distances, indices = self.index.search(query_embedding_np, k)
+
+        results = []
+        for i in range(k):
+            idx = indices[0][i]
+            results.append(self.metadata[idx])
+
+        return ToolResult(content=[{"text": json.dumps(results)}])
+
+def convert_webpage_to_markdown(url: str) -> ToolResult:
+    """
+    Fetches a webpage and converts its main content to Markdown.
+
+    Args:
+        url (str): The URL of the webpage.
+
+    Returns:
+        ToolResult: A ToolResult containing the Markdown content.
+    """
+    downloaded = fetch_url(url)
     if not downloaded:
-        return MarkdownOutput(markdown="Failed to download the webpage.")
+        return ToolResult(content=[{"text": "Failed to download URL."}], success=False)
 
-    markdown = trafilatura.extract(
-        downloaded,
-        include_comments=False,
-        include_tables=True,
-        include_images=True,
-        output_format='markdown'
-    ) or ""
+    result = extract(downloaded, include_comments=False)
+    if not result:
+        return ToolResult(content=[{"text": "Failed to extract content."}], success=False)
 
-    markdown = replace_images_with_captions(markdown)
-    return MarkdownOutput(markdown=markdown)
+    markdown_content = md(result, heading_style="ATX")
+    return ToolResult(content=[{"text": markdown_content}])
 
-@mcp.tool()
-def extract_pdf(input: FilePathInput) -> MarkdownOutput:
-    """Convert PDF to markdown. Usage: input={"input": {"file_path": "documents/sample.pdf"} } result = await mcp.call_tool('extract_pdf', input)"""
+# --- Server Setup ---
 
+async def main():
+    """
 
-    if not os.path.exists(input.file_path):
-        return MarkdownOutput(markdown=f"File not found: {input.file_path}")
+    The main entry point for the document and web MCP server.
 
-    ROOT = Path(__file__).parent.resolve()
-    global_image_dir = ROOT / "documents" / "images"
-    global_image_dir.mkdir(parents=True, exist_ok=True)
+    This function initializes the DocumentIndexer and runs the MCP server with tools
+    for document search and webpage conversion.
+    """
+    if len(sys.argv) > 1 and sys.argv[1] == '--stdio':
+        indexer = DocumentIndexer()
+        await indexer.initialize()
 
-    # Actual markdown with relative image paths
-    markdown = pymupdf4llm.to_markdown(
-        input.file_path,
-        write_images=True,
-        image_path=str(global_image_dir)
-    )
+        server = Server(ProcessTransport(sys.stdin, sys.stdout))
 
-    # Re-point image links in the markdown
-    markdown = re.sub(
-        r'!\[\]\((.*?/images/)([^)]+)\)',
-        r'![](images/\2)',
-        markdown.replace("\\", "/")
-    )
+        search_tool = Tool(
+            name="search_stored_documents",
+            description="Searches through stored documents to find relevant information.",
+            func=indexer.search,
+            schema={
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "The search query."},
+                    "k": {"type": "integer", "description": "Number of results to return."}
+                },
+                "required": ["query"]
+            }
+        )
+        server.add_tool(search_tool)
 
-    markdown = replace_images_with_captions(markdown)
-    return MarkdownOutput(markdown=markdown)
+        webpage_tool = Tool(
+            name="convert_webpage_url_into_markdown",
+            description="Fetches a webpage and converts its main content to Markdown.",
+            func=convert_webpage_to_markdown,
+            schema={
+                "type": "object",
+                "properties": {"url": {"type": "string", "description": "The URL of the webpage."}},
+                "required": ["url"]
+            }
+        )
+        server.add_tool(webpage_tool)
 
-
-def semantic_merge(text: str) -> list[str]:
-    """Splits text semantically using LLM: detects second topic and reuses leftover intelligently."""
-    WORD_LIMIT = 512
-    words = text.split()
-    i = 0
-    final_chunks = []
-
-    while i < len(words):
-        # 1. Take next chunk of words (and prepend leftovers if any)
-        chunk_words = words[i:i + WORD_LIMIT]
-        chunk_text = " ".join(chunk_words).strip()
-
-        prompt = f"""
-You are a markdown document segmenter.
-
-Here is a portion of a markdown document:
-
----
-{chunk_text}
----
-
-If this chunk clearly contains **more than one distinct topic or section**, reply ONLY with the **second part**, starting from the first sentence or heading of the new topic.
-
-If it's only one topic, reply with NOTHING.
-
-Keep markdown formatting intact.
-"""
-
-        try:
-            result = requests.post(OLLAMA_CHAT_URL, json={
-                "model": PHI_MODEL,
-                "messages": [{"role": "user", "content": prompt}],
-                "stream": False
-            })
-            reply = result.json().get("message", {}).get("content", "").strip()
-
-            if reply:
-                # If LLM returned second part, separate it
-                split_point = chunk_text.find(reply)
-                if split_point != -1:
-                    first_part = chunk_text[:split_point].strip()
-                    second_part = reply.strip()
-
-                    final_chunks.append(first_part)
-
-                    # Get remaining words from second_part and re-use them in next batch
-                    leftover_words = second_part.split()
-                    words = leftover_words + words[i + WORD_LIMIT:]
-                    i = 0  # restart loop with leftover + remaining
-                    continue
-                else:
-                    # fallback: if split point not found
-                    final_chunks.append(chunk_text)
-            else:
-                final_chunks.append(chunk_text)
-
-        except Exception as e:
-            mcp_log("ERROR", f"Semantic chunking LLM error: {e}")
-            final_chunks.append(chunk_text)
-
-        i += WORD_LIMIT
-
-    return final_chunks
-
-
-
-
-
-
-
-def process_documents():
-    """Process documents and create FAISS index using unified multimodal strategy."""
-    mcp_log("INFO", "Indexing documents with unified RAG pipeline...")
-    ROOT = Path(__file__).parent.resolve()
-    DOC_PATH = ROOT / "documents"
-    INDEX_CACHE = ROOT / "faiss_index"
-    INDEX_CACHE.mkdir(exist_ok=True)
-    INDEX_FILE = INDEX_CACHE / "index.bin"
-    METADATA_FILE = INDEX_CACHE / "metadata.json"
-    CACHE_FILE = INDEX_CACHE / "doc_index_cache.json"
-
-    def file_hash(path):
-        return hashlib.md5(Path(path).read_bytes()).hexdigest()
-
-    CACHE_META = json.loads(CACHE_FILE.read_text()) if CACHE_FILE.exists() else {}
-    metadata = json.loads(METADATA_FILE.read_text()) if METADATA_FILE.exists() else []
-    index = faiss.read_index(str(INDEX_FILE)) if INDEX_FILE.exists() else None
-
-    for file in DOC_PATH.glob("*.*"):
-        fhash = file_hash(file)
-        if file.name in CACHE_META and CACHE_META[file.name] == fhash:
-            mcp_log("SKIP", f"Skipping unchanged file: {file.name}")
-            continue
-
-        mcp_log("PROC", f"Processing: {file.name}")
-        try:
-            ext = file.suffix.lower()
-            markdown = ""
-
-            if ext == ".pdf":
-                mcp_log("INFO", f"Using MuPDF4LLM to extract {file.name}")
-                markdown = extract_pdf(FilePathInput(file_path=str(file))).markdown
-
-            elif ext in [".html", ".htm", ".url"]:
-                mcp_log("INFO", f"Using Trafilatura to extract {file.name}")
-                # Use the correctly named helper defined above
-                markdown = convert_webpage_url_into_markdown(
-                    UrlInput(url=file.read_text().strip())
-                ).markdown
-
-            else:
-                # Fallback to MarkItDown for other formats
-                converter = MarkItDown()
-                mcp_log("INFO", f"Using MarkItDown fallback for {file.name}")
-                markdown = converter.convert(str(file)).text_content
-
-            if not markdown.strip():
-                mcp_log("WARN", f"No content extracted from {file.name}")
-                continue
-
-            if len(markdown.split()) < 10:
-                mcp_log("WARN", f"Content too short for semantic merge in {file.name} → Skipping chunking.")
-                chunks = [markdown.strip()]
-            else:
-                mcp_log("INFO", f"Running semantic merge on {file.name} with {len(markdown.split())} words")
-                chunks = semantic_merge(markdown)
-
-
-            embeddings_for_file = []
-            new_metadata = []
-            for i, chunk in enumerate(tqdm(chunks, desc=f"Embedding {file.name}")):
-                embedding = get_embedding(chunk)
-                embeddings_for_file.append(embedding)
-                new_metadata.append({
-                    "doc": file.name,
-                    "chunk": chunk,
-                    "chunk_id": f"{file.stem}_{i}"
-                })
-
-            if embeddings_for_file:
-                if index is None:
-                    dim = len(embeddings_for_file[0])
-                    index = faiss.IndexFlatL2(dim)
-                index.add(np.stack(embeddings_for_file))
-                metadata.extend(new_metadata)
-                CACHE_META[file.name] = fhash
-
-                # ✅ Immediately save index and metadata
-                CACHE_FILE.write_text(json.dumps(CACHE_META, indent=2))
-                METADATA_FILE.write_text(json.dumps(metadata, indent=2))
-                faiss.write_index(index, str(INDEX_FILE))
-                mcp_log("SAVE", f"Saved FAISS index and metadata after processing {file.name}")
-
-        except Exception as e:
-            mcp_log("ERROR", f"Failed to process {file.name}: {e}")
-
-
-
-def ensure_faiss_ready():
-    from pathlib import Path
-    index_path = ROOT / "faiss_index" / "index.bin"
-    meta_path = ROOT / "faiss_index" / "metadata.json"
-    if not (index_path.exists() and meta_path.exists()):
-        mcp_log("INFO", "Index not found — running process_documents()...")
-        process_documents()
-    else:
-        mcp_log("INFO", "Index already exists. Skipping regeneration.")
-
+        await server.serve()
 
 if __name__ == "__main__":
-    print("mcp_server_2.py starting")
-
-    if len(sys.argv) > 1 and sys.argv[1] == "dev":
-        mcp.run()  # Run without transport for dev server
-    else:
-        mcp.run(transport="stdio")  # Proper stdio mode, no extra threads/side-effects
-        print("\nShutting down...")
+    asyncio.run(main())

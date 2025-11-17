@@ -20,12 +20,40 @@ except ImportError:
         print(f"[{now}] [{stage}] {msg}")
 
 class AgentLoop:
+    """
+    Manages the main operational cycle of the AI agent.
+
+    This class orchestrates the perception, decision, and action phases
+    of the agent's reasoning process. It iterates through these phases
+    until a final answer is found or the maximum number of steps is reached.
+
+    Attributes:
+        context (AgentContext): The agent's session state and configuration.
+        mcp (MultiMCP): The dispatcher for handling tool calls.
+        model (ModelManager): The manager for interacting with language models.
+    """
     def __init__(self, context: AgentContext):
+        """
+        Initializes the AgentLoop.
+
+        Args:
+            context (AgentContext): The context for the current agent session.
+        """
         self.context = context
         self.mcp = self.context.dispatcher
         self.model = ModelManager()
 
     async def run(self):
+        """
+        Executes the main perception-decision-action loop of the agent.
+
+        This method iterates through the agent's reasoning cycle, handling
+        perception, planning, and execution. It manages step limits, retries,
+        and determines when the task is complete.
+
+        Returns:
+            dict: A dictionary containing the final status ('done') and the result.
+        """
         max_steps = self.context.agent_profile.strategy.max_steps
 
         for step in range(max_steps):

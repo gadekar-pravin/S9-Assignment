@@ -1,87 +1,114 @@
-"""
-Utility functions that enforce lightweight heuristic input guardrails.
-"""
+# heuristic_rules.py
 
 import re
 
-SLANG_REPLACEMENTS = {
-    r"\bu\b": "you",
-    r"\bur\b": "your",
-    r"\bwanna\b": "want to",
-    r"\bgonna\b": "going to",
-    r"\bgotta\b": "have to",
-    r"\bpls\b": "please",
-    r"\bpls?\b": "please",
-    r"\btho\b": "though",
-    r"\bimo\b": "in my opinion",
-    r"\bidk\b": "I do not know",
-    r"\bwtf\b": "what",
+# --- Slang and Abbreviation Normalization ---
+SLANG_MAP = {
+    r'\bu\b': 'you',
+    r'\br\b': 'are',
+    r'\by\b': 'why',
+    r'\bplz\b': 'please',
+    r'\bthx\b': 'thanks',
+    # Add more common slang here
 }
 
-OFFENSIVE_WORDS = {
-    "damn",
-    "shit",
-    "fuck",
-    "bitch",
-    "bastard",
-}
-
-BLOCKED_SUBJECTS = {
-    "violence",
-    "kill",
-    "terrorism",
-    "extremism",
-    "weapon",
-    "firearm",
-    "gun",
-    "bomb",
-    "harm someone",
-    "self harm",
-    "drug manufacturing",
-}
-
-HIGH_RISK_VERBS = r"(?:make|build|assemble|manufacture|fabricate|construct|3d[- ]?print|cook(?: up)?|design)"
-HIGH_RISK_OBJECTS = r"(?:gun|firearm|weapon|bomb|grenade|explosive|pipe bomb|chemical weapon|improvised explosive|ied|poison|molotov|silencer)"
-DANGEROUS_PATTERNS = [
-    re.compile(rf"\b{HIGH_RISK_VERBS}\b[^\n]*\b{HIGH_RISK_OBJECTS}\b", re.IGNORECASE),
-    re.compile(rf"\b{HIGH_RISK_OBJECTS}\b[^\n]*\b{HIGH_RISK_VERBS}\b", re.IGNORECASE),
-    re.compile(r"\bhow to\b[^\n]*\b(gun|firearm|bomb|explosive|weapon)\b", re.IGNORECASE),
+# --- Profanity Filter ---
+# Note: This is a very basic list. A real-world application would use a more comprehensive library.
+PROFANITY_LIST = [
+    'darn', 'heck', 'shoot',
 ]
 
+# --- Disallowed Topics ---
+# Using simple keywords for demonstration. Regex can provide more robust matching.
+DISALLOWED_PATTERNS = {
+    'illegal_activities': re.compile(r'\b(how to make a bomb|steal|hack)\b', re.IGNORECASE),
+    'harmful_content': re.compile(r'\b(self-harm|promote violence)\b', re.IGNORECASE),
+    # Add more patterns as needed
+}
 
-def apply_input_heuristics(raw_text: str):
+def normalize_slang(text: str) -> str:
     """
-    Returns (allowed_flag, sanitized_text, message_if_blocked).
-    Sanitizes slang/offensive terms and blocks disallowed topics.
+    Replaces common slang and abbreviations with their standard English equivalents.
+
+    Args:
+        text (str): The input text.
+
+    Returns:
+        str: The text with slang normalized.
     """
-    normalized = raw_text.lower()
-    for topic in BLOCKED_SUBJECTS:
-        if topic in normalized:
-            return False, None, "I’m sorry, but I can’t assist with that topic."
-    for pattern in DANGEROUS_PATTERNS:
-        if pattern.search(raw_text):
-            return False, None, "I’m sorry, but I can’t assist with that topic."
+    for slang, standard in SLANG_MAP.items():
+        text = re.sub(slang, standard, text, flags=re.IGNORECASE)
+    return text
 
-    sanitized = raw_text
-    for pattern, replacement in SLANG_REPLACEMENTS.items():
-        sanitized = re.sub(pattern, replacement, sanitized, flags=re.IGNORECASE)
+def mask_profanity(text: str, mask: str = '****') -> str:
+    """
+    Masks profanity found in the text.
 
-    def _mask(match: re.Match) -> str:
-        word = match.group(0)
-        if len(word) <= 2:
-            return "*" * len(word)
-        return word[0] + "*" * (len(word) - 2) + word[-1]
+    Args:
+        text (str): The input text.
+        mask (str): The character(s) to use for masking profanity.
 
-    for cuss in OFFENSIVE_WORDS:
-        sanitized = re.sub(
-            rf"\b{re.escape(cuss)}\b",
-            _mask,
-            sanitized,
-            flags=re.IGNORECASE,
-        )
+    Returns:
+        str: The text with profanity masked.
+    """
+    for word in PROFANITY_LIST:
+        # Using word boundaries to avoid masking words like "heckle"
+        text = re.sub(r'\b' + re.escape(word) + r'\b', mask, text, flags=re.IGNORECASE)
+    return text
 
-    sanitized = re.sub(r"\s+", " ", sanitized).strip()
-    if not sanitized:
-        return False, None, "Could you please rephrase that?"
+def check_disallowed_topics(text: str) -> bool:
+    """
+    Checks if the text contains any disallowed topics based on predefined patterns.
 
-    return True, sanitized, None
+    Args:
+        text (str): The input text.
+
+    Returns:
+        bool: True if a disallowed topic is found, False otherwise.
+    """
+    for topic, pattern in DISALLOWED_PATTERNS.items():
+        if pattern.search(text):
+            print(f"DEBUG: Disallowed topic '{topic}' detected.")
+            return True
+    return False
+
+def apply_input_heuristics(user_input: str) -> str:
+    """
+    Applies a series of heuristic rules to sanitize and normalize user input.
+
+    This function serves as an input guardrail, performing the following steps:
+    1. Normalizes common slang.
+    2. Masks profanity.
+    3. Checks for disallowed topics and rejects the input if found.
+
+    Args:
+        user_input (str): The raw input string from the user.
+
+    Returns:
+        str: The processed and sanitized input string, or a rejection message
+             if a disallowed topic is detected.
+    """
+    # 1. Normalize slang
+    processed_input = normalize_slang(user_input)
+
+    # 2. Mask profanity
+    processed_input = mask_profanity(processed_input)
+
+    # 3. Check for disallowed topics
+    if check_disallowed_topics(processed_input):
+        return "Input rejected due to containing a disallowed topic."
+
+    return processed_input
+
+# --- Example Usage ---
+if __name__ == '__main__':
+    test_inputs = [
+        "u r awesome, thx!",
+        "what the heck is this?",
+        "how to make a bomb for a science project?",
+        "can u plz explain this concept?",
+    ]
+
+    for text in test_inputs:
+        processed = apply_input_heuristics(text)
+        print(f"Original: '{text}'\nProcessed: '{processed}'\n")

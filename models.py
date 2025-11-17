@@ -1,174 +1,31 @@
-from pydantic import BaseModel, Field
-from typing import List
+# models.py
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel
 
-# --- Math Tools ---
+class ToolExecution(BaseModel):
+    """
+    Represents a single execution of a tool within a session.
 
-class AddInput(BaseModel):
-    a: int
-    b: int
+    Attributes:
+        tool_name (str): The name of the tool that was executed.
+        arguments (Dict[str, Any]): The arguments passed to the tool.
+        result (Optional[Any]): The result returned by the tool.
+    """
+    tool_name: str
+    arguments: Dict[str, Any]
+    result: Optional[Any] = None
 
-class AddOutput(BaseModel):
-    result: int
+class Session(BaseModel):
+    """
+    Represents a single interaction session with the agent.
 
-class SubtractInput(BaseModel):
-    a: int
-    b: int
-
-class SubtractOutput(BaseModel):
-    result: int
-
-class MultiplyInput(BaseModel):
-    a: int
-    b: int
-
-class MultiplyOutput(BaseModel):
-    result: int
-
-class SqrtInput(BaseModel):
-    a: int
-    b: int
-
-class SqrtOutput(BaseModel):
-    result: int
-
-class DivideInput(BaseModel):
-    a: int
-    b: int
-
-class DivideOutput(BaseModel):
-    result: float
-
-class PowerInput(BaseModel):
-    a: int
-    b: int
-
-class PowerOutput(BaseModel):
-    result: int
-
-class CbrtInput(BaseModel):
-    a: int
-
-class CbrtOutput(BaseModel):
-    result: float
-
-class FactorialInput(BaseModel):
-    a: int
-
-class FactorialOutput(BaseModel):
-    result: int
-
-class RemainderInput(BaseModel):
-    a: int
-    b: int
-
-class RemainderOutput(BaseModel):
-    result: int
-
-class SinInput(BaseModel):
-    a: int
-
-class SinOutput(BaseModel):
-    result: float
-
-class CosInput(BaseModel):
-    a: int
-
-class CosOutput(BaseModel):
-    result: float
-
-class TanInput(BaseModel):
-    a: int
-
-class TanOutput(BaseModel):
-    result: float
-
-class MineInput(BaseModel):
-    a: int
-    b: int
-
-class MineOutput(BaseModel):
-    result: int
-
-# --- String & List Tools ---
-
-class StringsToIntsInput(BaseModel):
-    string: str
-
-class StringsToIntsOutput(BaseModel):
-    result: List[int]
-
-
-class ExpSumInput(BaseModel):
-    numbers: List[int]
-
-class ExpSumOutput(BaseModel):
-    result: float
-
-class FibonacciInput(BaseModel):
-    n: int
-
-class FibonacciOutput(BaseModel):
-    result: List[int]
-
-# --- Image Tools ---
-
-class CreateThumbnailInput(BaseModel):
-    image_path: str
-
-class ImageOutput(BaseModel):
-    data: bytes
-    format: str
-
-# --- Shell, Python, SQL Tools ---
-
-class PythonCodeInput(BaseModel):
-    code: str
-
-class PythonCodeOutput(BaseModel):
-    result: str
-
-class ShellCommandInput(BaseModel):
-    command: str
-
-# --- RAG and Extraction Tools ---
-
-class UrlInput(BaseModel):
-    url: str
-
-class FilePathInput(BaseModel):
-    file_path: str
-
-class MarkdownInput(BaseModel):
-    text: str
-
-class MarkdownOutput(BaseModel):
-    markdown: str
-
-class ChunkListOutput(BaseModel):
-    chunks: List[str]
-
-# --- Memory Search ---
-
-class SearchMemoryInput(BaseModel):
-    query: str
-
-class EmptyInput(BaseModel):
-    pass
-
-# --- Search Tools ---
-
-class SearchInput(BaseModel):
-    query: str
-    max_results: int = Field(default=10, description="Maximum number of results to return")
-
-class SearchDocumentsInput(BaseModel):
-    query: str
-
-class UrlInput(BaseModel):
-    url: str
-
-class FilePathInput(BaseModel):
-    file_path: str
-
-class MarkdownOutput(BaseModel):
-    markdown: str
+    Attributes:
+        session_id (str): A unique identifier for the session.
+        user_input (str): The initial input from the user.
+        tool_calls (List[ToolExecution]): A list of tool executions in the session.
+        final_answer (Optional[str]): The final answer provided by the agent.
+    """
+    session_id: str
+    user_input: str
+    tool_calls: List[ToolExecution] = []
+    final_answer: Optional[str] = None

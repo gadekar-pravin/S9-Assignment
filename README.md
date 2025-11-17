@@ -267,12 +267,13 @@ USER ASKS QUESTION
 1. [High-Level System Overview](#high-level-system-overview)
 2. [Core Components](#core-components)
 3. [How the System Works: The Main Flow](#how-the-system-works-the-main-flow)
-4. [Detailed Component Descriptions](#detailed-component-descriptions)
-5. [Tool Servers: The Agent's Capabilities](#tool-servers-the-agents-capabilities)
-6. [Data Flow and Interactions](#data-flow-and-interactions)
-7. [Configuration and Customization](#configuration-and-customization)
-8. [Memory and Learning](#memory-and-learning)
-9. [System Architecture Diagram](#system-architecture-diagram)
+4. [Getting Started](#getting-started)
+5. [Detailed Component Descriptions](#detailed-component-descriptions)
+6. [Tool Servers: The Agent's Capabilities](#tool-servers-the-agents-capabilities)
+7. [Data Flow and Interactions](#data-flow-and-interactions)
+8. [Configuration and Customization](#configuration-and-customization)
+9. [Memory and Learning](#memory-and-learning)
+10. [System Architecture Diagram](#system-architecture-diagram)
 
 ---
 
@@ -414,6 +415,86 @@ Throughout this process, the Memory Manager records:
 - The final answer
 
 This information helps the agent make better decisions in future interactions.
+
+---
+
+## Getting Started
+
+This section provides a guide for new developers to set up and run the Cortex-R agent on their local machine.
+
+### 1. Prerequisites
+
+- **Python 3.10+**: Ensure you have a modern version of Python installed.
+- **uv**: This project uses `uv` for package management. If you don't have it, install it with:
+  ```bash
+  pip install uv
+  ```
+- **Git**: For cloning the repository.
+
+### 2. Installation
+
+Clone the repository and install the required Python dependencies.
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/cortex-r-ai-agent.git
+cd cortex-r-ai-agent
+
+# Install dependencies using uv
+uv pip sync
+```
+
+### 3. Configuration
+
+The agent's behavior is controlled by configuration files in the `config/` directory.
+
+#### AI Model Configuration (`config/models.json`)
+
+You need to configure at least one AI model for the agent to function.
+
+**For Google Gemini (Recommended):**
+1.  Obtain an API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+2.  Set the API key as an environment variable.
+    ```bash
+    export GEMINI_API_KEY="your-api-key-here"
+    ```
+3.  The `config/models.json` file is pre-configured to use this environment variable.
+
+**For Ollama (Local Models):**
+1.  Install [Ollama](https://ollama.com/) and download a model.
+    ```bash
+    # Download the Phi-3 model
+    ollama pull phi3
+
+    # Download the Nomic embedding model
+    ollama pull nomic-embed-text
+    ```
+2.  Update `config/profiles.yaml` to use Ollama models for text generation and embeddings:
+    ```yaml
+    llm:
+      text_generation: phi3 # or another ollama model name
+      embedding: nomic-embed-text
+    ```
+
+### 4. Running the Agent
+
+Once the dependencies are installed and configuration is set, you can run the agent.
+
+```bash
+python agent.py
+```
+
+The agent will start, initialize the tool servers, and present you with a `CORTEX-R >` prompt to enter your questions.
+
+### 5. Verifying the Setup
+
+To ensure all tool servers are configured correctly and can be launched, run the server check script:
+
+```bash
+python mcp_server_check.py
+```
+
+This script will attempt to connect to each server defined in `config/profiles.yaml` and list its available tools.
 
 ---
 
@@ -899,8 +980,8 @@ Returns: Clean text content of the page
    - Returns prior Q&A pairs plus `l2_distance` scores so the agent can assess relevancy
 
 **How It Works**:
-1. Every session logged under `memory/YYYY/MM/DD/session-*.json` is parsed.
-2. Successful user-question/final-answer pairs are embedded and stored in FAISS (`index.bin`) with metadata (`metadata.json`).
+1. Every session logged under `memory/` is parsed.
+2. Successful user-question/final-answer pairs are embedded and stored in FAISS.
 3. When queried, the server embeds the new question, performs vector search, and responds with the closest historical matches.
 
 **Example Usage**:

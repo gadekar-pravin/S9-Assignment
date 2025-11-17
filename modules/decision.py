@@ -20,7 +20,7 @@ model = ModelManager()
 # prompt_path = "prompts/decision_prompt.txt"
 
 async def generate_plan(
-    user_input: str, 
+    user_input: str,
     perception: PerceptionResult,
     memory_items: List[MemoryItem],
     tool_descriptions: Optional[str],
@@ -29,7 +29,26 @@ async def generate_plan(
     max_steps: int = 3,
 ) -> str:
 
-    """Generates the full solve() function plan for the agent."""
+    """
+    Generates a Python `solve()` function using a language model.
+
+    This function constructs a prompt from the user input, perception results,
+    memory, and available tools, then calls the language model to generate a
+    plan in the form of a Python function.
+
+    Args:
+        user_input (str): The original user input.
+        perception (PerceptionResult): The output from the perception phase.
+        memory_items (List[MemoryItem]): A list of memory items from the current session.
+        tool_descriptions (str): A description of the available tools.
+        prompt_path (str): The file path to the prompt template.
+        step_num (int): The current step number in the agent's loop.
+        max_steps (int): The total number of steps the agent is allowed to take.
+
+    Returns:
+        str: The generated Python code for the `solve()` function, or a
+             fallback "FINAL_ANSWER" if generation fails.
+    """
 
     memory_texts = "\n".join(f"- {m.text}" for m in memory_items) or "None"
 

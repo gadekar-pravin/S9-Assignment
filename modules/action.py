@@ -17,6 +17,15 @@ except ImportError:
         print(f"[{now}] [{stage}] {msg}")
 
 class ToolCallResult(BaseModel):
+    """
+    Represents the result of a single tool call.
+
+    Attributes:
+        tool_name (str): The name of the tool that was called.
+        arguments (Dict[str, Any]): The arguments passed to the tool.
+        result (Union[str, list, dict]): The processed result of the tool call.
+        raw_response (Any): The raw response from the tool.
+    """
     tool_name: str
     arguments: Dict[str, Any]
     result: Union[str, list, dict]
@@ -25,6 +34,20 @@ class ToolCallResult(BaseModel):
 MAX_TOOL_CALLS_PER_PLAN = 5
 
 async def run_python_sandbox(code: str, dispatcher: Any) -> str:
+    """
+    Executes a Python code string in a sandboxed environment.
+
+    This function dynamically executes the provided code, which is expected
+    to define an async `solve()` function. It injects a patched MCP client
+    for handling tool calls and restricts the number of calls per plan.
+
+    Args:
+        code (str): A string containing the Python code for the `solve()` function.
+        dispatcher (Any): An instance of a dispatcher for handling tool calls.
+
+    Returns:
+        str: The result of the `solve()` function, or an error string if execution fails.
+    """
     print("[action] 🔍 Entered run_python_sandbox()")
 
     # Create a fresh module scope
