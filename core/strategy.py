@@ -17,7 +17,16 @@ except ImportError:
         print(f"[{now}] [{stage}] {msg}")
 
 def select_decision_prompt_path(planning_mode: str, exploration_mode: Optional[str] = None) -> str:
-    """Selects the appropriate decision prompt file based on planning strategy."""
+    """
+    Selects the appropriate decision prompt file based on the planning strategy.
+
+    Args:
+        planning_mode (str): The primary planning mode ('conservative' or 'exploratory').
+        exploration_mode (Optional[str]): The exploration sub-mode ('parallel' or 'sequential').
+
+    Returns:
+        str: The file path to the selected prompt template.
+    """
     if planning_mode == "conservative":
         return "prompts/decision_prompt_conservative.txt"
     elif planning_mode == "exploratory":
@@ -39,7 +48,22 @@ async def decide_next_action(
     force_replan: bool = False,
 ) -> str:
     """
-    Main decision function.
+    Determines the next action or plan based on the current context and strategy.
+
+    This function serves as the main entry point for the decision-making process,
+    routing to different planning strategies like 'conservative' or 'exploratory'.
+
+    Args:
+        context (AgentContext): The current session's context.
+        perception (PerceptionResult): The output from the perception phase.
+        memory_items (List[MemoryItem]): A list of items from the session's memory.
+        all_tools (List[Any]): A list of all available tools.
+        last_result (str): The result from the previous action (currently unused).
+        failed_tools (List[str]): A list of tools that have failed in the current step.
+        force_replan (bool): A flag to force replanning, ignoring previous suggestions.
+
+    Returns:
+        str: A string representing the generated plan (e.g., a Python `solve()` function).
     """
 
     strategy = context.agent_profile.strategy
@@ -47,7 +71,6 @@ async def decide_next_action(
     exploration_mode = strategy.exploration_mode
     memory_fallback_enabled = strategy.memory_fallback_enabled
     max_steps = strategy.max_steps
-    max_lifelines_per_step = strategy.max_lifelines_per_step
     step_num = context.step + 1
 
     # === Select correct decision prompt path ===
@@ -93,7 +116,22 @@ async def conservative_plan(
     prompt_path: str,
     force_replan: bool
 ) -> str:
-    """Conservative: Plan 1 tool call."""
+    """
+    Generates a plan using a conservative strategy, typically focusing on a single tool call.
+
+    Args:
+        perception (PerceptionResult): The output from the perception phase.
+        memory_items (List[MemoryItem]): A list of items from the session's memory.
+        filtered_summary (str): A summary of tools filtered by the perception hint.
+        all_tools (List[Any]): A list of all available tools, for fallback.
+        step_num (int): The current step number.
+        max_steps (int): The maximum number of steps.
+        prompt_path (str): The path to the prompt template for planning.
+        force_replan (bool): A flag to force replanning with all tools.
+
+    Returns:
+        str: The generated plan.
+    """
 
     if force_replan or not filtered_summary.strip():
         log("strategy", "⚠️ Force replan or no filtered tools. Using all tools.")
@@ -126,7 +164,25 @@ async def exploratory_plan(
     force_replan: bool,
     failed_tools: List[str]
 ) -> str:
-    """Exploratory: Plan multiple options."""
+    """
+    Generates a plan using an exploratory strategy, potentially considering multiple options.
+
+    Args:
+        perception (PerceptionResult): The output from the perception phase.
+        memory_items (List[MemoryItem]): A list of items from the session's memory.
+        filtered_summary (str): A summary of tools filtered by the perception hint.
+        all_tools (List[Any]): A list of all available tools.
+        step_num (int): The current step number.
+        max_steps (int): The maximum number of steps.
+        exploration_mode (str): The specific exploration mode ('parallel' or 'sequential').
+        memory_fallback_enabled (bool): Whether to use memory fallback if stuck.
+        prompt_path (str): The path to the prompt template.
+        force_replan (bool): A flag to force replanning.
+        failed_tools (List[str]): A list of tools that have already failed.
+
+    Returns:
+        str: The generated plan.
+    """
 
     if force_replan:
         log("strategy", "⚠️ Force replan triggered. Attempting fallback.")
@@ -183,7 +239,20 @@ async def generate_plan(
     step_num: int,
     max_steps: int,
 ) -> str:
-    """Ask LLM to generate solve() using the right prompt."""
+    """
+    Asks the language model to generate a `solve()` function based on the provided context.
+
+    Args:
+        perception (PerceptionResult): The output from the perception phase.
+        memory_items (List[MemoryItem]): A list of items from the session's memory.
+        tool_descriptions (str): A summary of the available tools.
+        prompt_path (str): The path to the prompt template.
+        step_num (int): The current step number.
+        max_steps (int): The maximum number of steps.
+
+    Returns:
+        str: The raw string of the generated `solve()` function.
+    """
 
     prompt_template = load_prompt(prompt_path)
 
@@ -199,7 +268,16 @@ async def generate_plan(
 
 # === MEMORY FALLBACK LOGIC ===
 def find_recent_successful_tools(memory_items: List[MemoryItem], limit: int = 5) -> List[str]:
-    """Find recent successful tool names based on memory items."""
+    """
+    Finds the names of recently used, successful tools from memory.
+
+    Args:
+        memory_items (List[MemoryItem]): A list of items from the session's memory.
+        limit (int): The maximum number of unique tool names to return.
+
+    Returns:
+        List[str]: A list of unique tool names that were recently successful.
+    """
     successful_tools = []
 
     for item in reversed(memory_items):

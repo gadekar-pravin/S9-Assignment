@@ -1,169 +1,169 @@
 # agent.py
 
+import os
+import sys
 import asyncio
 import yaml
+import json
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+from core.context import AgentContext
 from core.loop import AgentLoop
 from core.session import MultiMCP
-from core.context import MemoryItem, AgentContext
-import datetime
-from pathlib import Path
-import json
-import warnings
 from heuristic_rules import apply_input_heuristics
+from modules.tools import summarize_tools
 
-# Quiet noisy SWIG-related DeprecationWarnings emitted by third-party deps.
-warnings.filterwarnings(
-    "ignore",
-    message=r"builtin type (?:SwigPyPacked|SwigPyObject|swigvarlink) has no __module__ attribute",
-    category=DeprecationWarning,
-)
-
+# --- Global MCP Dispatcher ---
+# This will be initialized asynchronously in main
+mcp_dispatcher: Optional[MultiMCP] = None
 
 def log(stage: str, msg: str):
-    """Simple timestamped console logger."""
-    now = datetime.datetime.now().strftime("%H:%M:%S")
-    print(f"[{now}] [{stage}] {msg}")
+    """
+    A simple logging function to print messages with a timestamp and stage.
+
+    Args:
+        stage (str): The stage of the agent's process (e.g., 'init', 'perception').
+        msg (str): The message to be logged.
+    """
+    now = datetime.now().strftime("%H:%M:%S")
+    print(f"[{now}] [{stage.upper()}] {msg}")
+
+async def get_selectively_injected_context(user_input: str, max_results: int = 2, distance_threshold: float = 300.0) -> str:
+    """
+    Retrieves relevant historical context to inject into the user's prompt.
+
+    This function calls the memory server to find past conversations similar to the
+    current user input. If relevant results are found below a distance threshold,
+    it formats them for inclusion in the prompt.
+
+    Args:
+        user_input (str): The user's current input.
+        max_results (int): The maximum number of historical items to retrieve.
+        distance_threshold (float): The maximum L2 distance for a result to be considered relevant.
+
+    Returns:
+        str: A string of formatted historical context, or an empty string if none is found.
+    """
+    global mcp_dispatcher
+    if not mcp_dispatcher:
+        return ""
+
+    try:
+        # 1. Search for relevant historical conversations
+        history_result = await mcp_dispatcher.call_tool(
+            'search_historical_conversations',
+            {"query": user_input, "max_results": max_results}
+        )
+
+        # 2. Check if the call was successful and if there's content
+        if not history_result.success or not history_result.content:
+            return ""
+
+        # The result is a JSON string in the first content item
+        qa_pairs = json.loads(history_result.content[0]['text'])
+
+        # 3. Filter by distance threshold
+        relevant_pairs = [
+            pair for pair in qa_pairs
+            if pair.get('l2_distance', float('inf')) < distance_threshold
+        ]
+
+        if not relevant_pairs:
+            return ""
+
+        # 4. Format for injection
+        formatted_context = "Relevant past conversations for context:\n"
+        for pair in relevant_pairs:
+            formatted_context += f"- User asked: '{pair['user_query']}'\n"
+            formatted_context += f"  Agent answered: '{pair['final_answer']}'\n"
+
+        log("context", f"Injecting {len(relevant_pairs)} relevant historical Q&A pairs.")
+        return formatted_context
+
+    except Exception as e:
+        log("context", f"⚠️ Error fetching historical context: {e}")
+        return ""
 
 
 async def main():
-    print("🧠 Cortex-R Agent Ready")
-    current_session = None
+    """
+    The main entry point for the AI agent.
 
+    This function initializes the agent, including its configuration and tool servers.
+    It then enters a loop to process user input, applying heuristics, running the
+    perception-decision-action cycle, and displaying the final answer.
+    """
+    global mcp_dispatcher
+    log("init", "Starting Cortex-R agent...")
+
+    # --- Load Configuration ---
     with open("config/profiles.yaml", "r") as f:
-        profile = yaml.safe_load(f)
-        mcp_servers_list = profile.get("mcp_servers", [])
-        mcp_servers = {server["id"]: server for server in mcp_servers_list}
+        config = yaml.safe_load(f)
 
-    multi_mcp = MultiMCP(server_configs=list(mcp_servers.values()))
-    await multi_mcp.initialize()
+    mcp_server_configs = config.get("mcp_servers", [])
+    if not mcp_server_configs:
+        log("init", "❌ No MCP servers configured. Exiting.")
+        return
 
-    # --- This is the new "best of both worlds" injection logic ---
-    async def get_selectively_injected_context(user_query: str, dispatcher: MultiMCP) -> str:
-        """
-        Calls the memory server to find relevant history.
-        If found, formats it and prepends it to the user's query.
-        """
-        # Define a relevance threshold (lower L2 distance is better)
-        RELEVANCE_THRESHOLD = 300.0  # Adjust this based on your embedding model
+    # --- Initialize Tool Servers ---
+    log("init", "Initializing tool servers...")
+    mcp_dispatcher = MultiMCP(server_configs=mcp_server_configs)
+    await mcp_dispatcher.initialize()
+    log("init", "✅ Tool servers initialized.")
 
+    # --- Main Loop ---
+    while True:
         try:
-            log("memory-inject", f"Searching history for query: {user_query}")
-            hist_raw = await dispatcher.call_tool(
-                "search_historical_conversations",
-                {"input": {"query": user_query, "max_results": 2}}
-            )
-
-            hist_json = json.loads(hist_raw.content[0].text)
-            matches = hist_json.get("result", {}).get("matches", [])
-
-            if not matches:
-                log("memory-inject", "No relevant history found.")
-                return user_query  # Return original query
-
-            # Filter matches by the relevance threshold
-            relevant_matches = [m for m in matches if m.get("l2_distance", 1000) < RELEVANCE_THRESHOLD]
-
-            if not relevant_matches:
-                log("memory-inject", f"Matches found, but none below threshold {RELEVANCE_THRESHOLD}.")
-                return user_query  # Return original query
-
-            # Format the relevant history
-            historical_block = []
-            for conv in relevant_matches:
-                dt = datetime.datetime.fromtimestamp(conv['timestamp']).strftime('%Y-%m-%d')
-                historical_block.append(
-                    f"On {dt}, you had this exchange:\n"
-                    f"User: {conv['user_query']}\n"
-                    f"Agent: {conv['final_answer']}"
-                )
-
-            historical_summary = "\n\n---\n\n".join(historical_block)
-            log("memory-inject", "Injecting relevant historical context.")
-
-            # Return the new, combined prompt
-            return (
-                f"User's current query: {user_query}\n\n"
-                f"For your reference, here is some highly relevant context from your past conversations. "
-                f"Use this to inform your answer:\n\n"
-                f"{historical_summary}"
-            )
-
-        except Exception as e:
-            log("memory-inject", f"Could not fetch historical context: {e}")
-            return user_query  # Fail safe: return original query
-
-    try:
-        while True:
-            user_input = input("🧑 What do you want to solve today? → ")
-            if user_input.lower() == 'exit':
+            user_input = input(" CORTEX-R > ")
+            if user_input.lower() in ["exit", "quit"]:
                 break
-            if user_input.lower() == 'new':
-                current_session = None
-                log("agent", "Starting a new session.")
-                continue
 
-            allowed, sanitized_input, blocked_msg = apply_input_heuristics(user_input)
+            # 1. Apply heuristic rules to user input
+            allowed, sanitized_input, rejection_message = apply_input_heuristics(user_input)
             if not allowed:
-                log("agent", "Blocked or unprocessable input.")
-                print(f"⚠️ {blocked_msg}")
+                print(f"⚠️ {rejection_message}")
                 continue
+
             if sanitized_input != user_input:
-                log("agent", "Sanitized user input via heuristics.")
-            user_input = sanitized_input
+                log("heuristic", f"Input modified: '{sanitized_input}'")
 
-            # === 🧠 AUTOMATIC HISTORICAL CONTEXT INJECTION ===
-            # This is the "Selective Injection" step.
-            injected_user_input = await get_selectively_injected_context(user_input, multi_mcp)
-            # =================================================
+            # 2. (Optional) Get selective context from memory
+            injected_context = await get_selectively_injected_context(sanitized_input)
+            if injected_context:
+                final_input = f"{injected_context}\nUser task: {sanitized_input}"
+            else:
+                final_input = sanitized_input
 
-            while True:
-                context = AgentContext(
-                    user_input=injected_user_input,  # Use the new, context-aware input
-                    session_id=current_session,
-                    dispatcher=multi_mcp,
-                    mcp_server_descriptions=mcp_servers,
-                )
-                agent = AgentLoop(context)
-                if not current_session:
-                    current_session = context.session_id
+            # 3. Create Agent Context for this session
+            # We pass full server descriptions for the perception phase
+            server_descriptions = [
+                {"id": cfg["id"], "description": cfg["description"]}
+                for cfg in mcp_server_configs
+            ]
 
-                result = await agent.run()
+            context = AgentContext(
+                user_input=final_input,
+                dispatcher=mcp_dispatcher,
+                mcp_server_descriptions=server_descriptions
+            )
 
-                if isinstance(result, dict):
-                    answer = result["result"]
-                    if "FINAL_ANSWER:" in answer:
-                        print(f"\n💡 Final Answer: {answer.split('FINAL_ANSWER:')[1].strip()}")
-                        break
-                    elif "FURTHER_PROCESSING_REQUIRED:" in answer:
-                        user_input = answer.split("FURTHER_PROCESSING_REQUIRED:")[1].strip()
-                        log("agent", "Further processing required. Re-running loop...")
+            # 4. Run the agent loop
+            agent_loop = AgentLoop(context)
+            result = await agent_loop.run()
 
-                        # --- Re-inject context for the follow-up step ---
-                        injected_user_input = await get_selectively_injected_context(user_input, multi_mcp)
-                        continue  # Re-run agent with updated input
-                    else:
-                        print(f"\n💡 Final Answer (raw): {answer}")
-                        break
-                else:
-                    print(f"\n💡 Final Answer (unexpected): {result}")
-                    break
-    except KeyboardInterrupt:
-        print("\n👋 Received exit signal. Shutting down...")
+            # 5. Display the final answer
+            final_answer = result.get("result", "No final answer found.")
+            if final_answer.startswith("FINAL_ANSWER:"):
+                final_answer = final_answer.split("FINAL_ANSWER:", 1)[1].strip()
 
+            print(f"\n💡 Final Answer: {final_answer}\n")
+
+        except KeyboardInterrupt:
+            break
+
+    log("shutdown", "Agent shutting down...")
+    if mcp_dispatcher:
+        await mcp_dispatcher.shutdown()
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
-# Find the ASCII values of characters in INDIA and then return sum of exponentials of those values.
-# How much Anmol singh paid for his DLF apartment via Capbridge? 
-# What do you know about Don Tapscott and Anthony Williams?
-# What is the relationship between Gensol and Go-Auto?
-# which course are we teaching on Canvas LMS? "H:\DownloadsH\How to use Canvas LMS.pdf"
-# Summarize this page: https://theschoolof.ai/
-# Summarize this page: https://www.google.com/
-# What is the log value of the amount that Anmol singh paid for his DLF apartment via Capbridge?
-# Who won the Bihar 2025 assembly election?
-# What is the factorial of 3?
-# What is the cube root of 27?

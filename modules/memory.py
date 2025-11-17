@@ -1,133 +1,143 @@
 # modules/memory.py
 
 import json
-import os
+from typing import List, Optional, Dict, Any, Union
+from pathlib import Path
 import time
-from typing import List, Optional
-from pydantic import BaseModel
-
-# Optional fallback logger
-try:
-    from agent import log
-except ImportError:
-    import datetime
-    def log(stage: str, msg: str):
-        now = datetime.datetime.now().strftime("%H:%M:%S")
-        print(f"[{now}] [{stage}] {msg}")
+from datetime import datetime
+from pydantic import BaseModel, Field
 
 class MemoryItem(BaseModel):
-    """Represents a single memory entry for a session."""
+    """
+    A single entry in the agent's memory.
+
+    Attributes:
+        timestamp (float): The Unix timestamp of the memory item.
+        type (str): The type of the memory item (e.g., 'user_input', 'tool_output').
+        text (str): A human-readable description of the memory item.
+        session_id (str): The ID of the session this item belongs to.
+        tags (List[str]): A list of tags for categorization.
+        tool_name (Optional[str]): The name of the tool, if applicable.
+        tool_args (Optional[Dict[str, Any]]): The arguments passed to the tool.
+        tool_result (Optional[Dict[str, Any]]): The result from the tool.
+        success (Optional[bool]): Whether the tool call was successful.
+        user_query (Optional[str]): The original user query that initiated the action.
+        metadata (Dict[str, Any]): Any additional metadata.
+    """
     timestamp: float
-    type: str  # run_metadata, tool_call, tool_output, final_answer
+    type: str
     text: str
+    session_id: str
+    tags: List[str] = []
+
+    # Tool-specific fields
     tool_name: Optional[str] = None
-    tool_args: Optional[dict] = None
-    tool_result: Optional[dict] = None
-    final_answer: Optional[str] = None
-    tags: Optional[List[str]] = []
+    tool_args: Optional[Dict[str, Any]] = None
+    tool_result: Optional[Dict[str, Any]] = None
     success: Optional[bool] = None
-    metadata: Optional[dict] = {}  # ✅ ADD THIS LINE BACK
+
+    # For linking back to user intent
+    user_query: Optional[str] = None
+
+    # Flexible metadata
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class MemoryManager:
-    """Manages session memory (read/write/append)."""
+    """
+    Manages the agent's long-term memory, storing and retrieving session data.
 
-    def __init__(self, session_id: str, memory_dir: str = "memory"):
+    This class handles the creation, saving, and loading of memory items for each
+    session. Memories are stored as JSON files in a directory structure organized by date.
+
+    Attributes:
+        session_id (str): The unique identifier for the current session.
+        base_dir (Path): The base directory where memories are stored.
+        session_path (Path): The full path to the current session's memory file.
+        session_items (List[MemoryItem]): The list of memory items for the current session.
+    """
+    def __init__(self, session_id: str, base_dir: str = "memory"):
+        """
+        Initializes the MemoryManager for a given session.
+
+        Args:
+            session_id (str): The ID for the session.
+            base_dir (str): The root directory for memory storage.
+        """
         self.session_id = session_id
-        self.memory_dir = memory_dir
-        self.memory_path = os.path.join('memory', session_id.split('-')[0], session_id.split('-')[1], session_id.split('-')[2], f'session-{session_id}.json')
-        self.items: List[MemoryItem] = []
+        self.base_dir = Path(base_dir)
+        self.session_path = self.base_dir / f"{session_id}.json"
+        self.session_items: List[MemoryItem] = []
 
-        if not os.path.exists(self.memory_dir):
-            os.makedirs(self.memory_dir)
+        # Ensure the directory for the session exists
+        self.session_path.parent.mkdir(parents=True, exist_ok=True)
 
-        self.load()
+        self._load_session()
 
-    def load(self):
-        if os.path.exists(self.memory_path):
-            with open(self.memory_path, "r", encoding="utf-8") as f:
-                raw = json.load(f)
-                self.items = [MemoryItem(**item) for item in raw]
-        else:
-            self.items = []
+    def _load_session(self):
+        """Loads existing session items from the session file, if it exists."""
+        if self.session_path.exists():
+            with open(self.session_path, "r") as f:
+                try:
+                    items_data = json.load(f)
+                    self.session_items = [MemoryItem(**item) for item in items_data]
+                except json.JSONDecodeError:
+                    # Handle cases where the file might be empty or corrupt
+                    self.session_items = []
 
-    def save(self):
-        # Before opening the file for writing
-        os.makedirs(os.path.dirname(self.memory_path), exist_ok=True)
-        with open(self.memory_path, "w", encoding="utf-8") as f:
-            raw = [item.dict() for item in self.items]
-            json.dump(raw, f, indent=2)
+    def _save_session(self):
+        """Saves the current session's items to its JSON file."""
+        with open(self.session_path, "w") as f:
+            json.dump([item.dict() for item in self.session_items], f, indent=2)
 
     def add(self, item: MemoryItem):
-        self.items.append(item)
-        self.save()
+        """
+        Adds a new MemoryItem to the current session and saves it.
 
-    def add_tool_call(
-        self, tool_name: str, tool_args: dict, tags: Optional[List[str]] = None
-    ):
-        item = MemoryItem(
-            timestamp=time.time(),
-            type="tool_call",
-            text=f"Called {tool_name} with {tool_args}",
-            tool_name=tool_name,
-            tool_args=tool_args,
-            tags=tags or [],
-        )
-        self.add(item)
+        Args:
+            item (MemoryItem): The memory item to add.
+        """
+        self.session_items.append(item)
+        self._save_session()
 
     def add_tool_output(
-        self, tool_name: str, tool_args: dict, tool_result: dict, success: bool, tags: Optional[List[str]] = None
+        self,
+        tool_name: str,
+        tool_args: Dict,
+        tool_result: Any,
+        success: bool,
+        tags: Optional[List[str]] = None,
     ):
+        """
+        A convenience method for adding a tool output to memory.
+
+        Args:
+            tool_name (str): The name of the tool that was called.
+            tool_args (Dict): The arguments passed to the tool.
+            tool_result (Any): The result returned by the tool.
+            success (bool): A flag indicating if the tool call was successful.
+            tags (Optional[List[str]]): A list of tags for categorization.
+        """
+        text = f"Tool '{tool_name}' {'succeeded' if success else 'failed'}. Result: {tool_result}"
+
         item = MemoryItem(
             timestamp=time.time(),
             type="tool_output",
-            text=f"Output of {tool_name}: {tool_result}",
+            text=text,
+            session_id=self.session_id,
             tool_name=tool_name,
             tool_args=tool_args,
             tool_result=tool_result,
-            success=success,  # 🆕 Track success!
-            tags=tags or [],
+            success=success,
+            tags=tags or []
         )
         self.add(item)
-
-    def add_final_answer(self, text: str):
-        item = MemoryItem(
-            timestamp=time.time(),
-            type="final_answer",
-            text=text,
-            final_answer=text,
-        )
-        self.add(item)
-
-    def find_recent_successes(self, limit: int = 5) -> List[str]:
-        """Find tool names which succeeded recently."""
-        tool_successes = []
-
-        # Search from newest to oldest
-        for item in reversed(self.items):
-            if item.type == "tool_output" and item.success:
-                if item.tool_name and item.tool_name not in tool_successes:
-                    tool_successes.append(item.tool_name)
-            if len(tool_successes) >= limit:
-                break
-
-        return tool_successes
-
-    def add_tool_success(self, tool_name: str, success: bool):
-        """Patch last tool call or output for a given tool with success=True/False."""
-
-        # Search backwards for latest matching tool call/output
-        for item in reversed(self.items):
-            if item.tool_name == tool_name and item.type in {"tool_call", "tool_output"}:
-                item.success = success
-                log("memory", f"✅ Marked {tool_name} as success={success}")
-                self.save()
-                return
-
-        log("memory", f"⚠️ Tried to mark {tool_name} as success={success} but no matching memory found.")
 
     def get_session_items(self) -> List[MemoryItem]:
         """
-        Return all memory items for current session.
+        Retrieves all memory items for the current session.
+
+        Returns:
+            List[MemoryItem]: A list of all memory items.
         """
-        return self.items
+        return self.session_items

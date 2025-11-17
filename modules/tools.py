@@ -1,53 +1,56 @@
 # modules/tools.py
 
-from typing import List, Dict, Optional, Any
-import re
-
-def extract_json_block(text: str) -> str:
-    match = re.search(r"```json\n(.*?)```", text, re.DOTALL)
-    if match:
-        return match.group(1).strip()
-    return text.strip()
-
+from typing import List, Any, Optional
 
 def summarize_tools(tools: List[Any]) -> str:
     """
-    Generate a string summary of tools for LLM prompt injection.
-    Format: "- tool_name: description"
-    """
-    return "\n".join(
-        f"- {tool.name}: {getattr(tool, 'description', 'No description provided.')}"
-        for tool in tools
-    )
+    Creates a summarized string of tool descriptions.
 
+    Args:
+        tools (List[Any]): A list of tool objects, each expected to have 'name' and 'description' attributes.
 
-def filter_tools_by_hint(tools: List[Any], hint: Optional[str] = None) -> List[Any]:
+    Returns:
+        str: A formatted string summarizing each tool.
     """
-    If tool_hint is provided (e.g., 'search_documents'),
-    try to match it exactly or fuzzily with available tool names.
+    if not tools:
+        return "No tools available."
+
+    summary_lines = []
+    for tool in tools:
+        # Assuming the tool object has 'name' and 'description' attributes.
+        summary_lines.append(f"- {tool.name}: {tool.description}")
+
+    return "\n".join(summary_lines)
+
+def filter_tools_by_hint(tools: List[Any], hint: Optional[str]) -> List[Any]:
+    """
+    Filters a list of tools based on a hint string.
+
+    If a hint is provided, this function returns tools whose names are contained
+    within the hint string. If the hint is None or empty, it returns all tools.
+
+    Args:
+        tools (List[Any]): A list of tool objects with a 'name' attribute.
+        hint (Optional[str]): A string containing hints for tool selection.
+
+    Returns:
+        List[Any]: A filtered list of tool objects.
     """
     if not hint:
         return tools
 
-    hint_lower = hint.lower()
-    filtered = [tool for tool in tools if hint_lower in tool.name.lower()]
-    return filtered if filtered else tools
+    # Simple substring matching for now. Can be improved.
+    return [tool for tool in tools if tool.name in hint]
 
-
-def get_tool_map(tools: List[Any]) -> Dict[str, Any]:
+def load_prompt(file_path: str) -> str:
     """
-    Return a dict of tool_name → tool object for fast lookup
+    Loads a prompt template from a file.
+
+    Args:
+        file_path (str): The path to the prompt file.
+
+    Returns:
+        str: The content of the file as a string.
     """
-    return {tool.name: tool for tool in tools}
-
-def tool_expects_input(self, tool_name: str) -> bool:
-    tool = next((t for t in self.tools if t.name == tool_name), None)
-    if not tool or not hasattr(tool, 'parameters') or not isinstance(tool.parameters, dict):
-        return False
-    # If the top-level parameter is just 'input', we assume wrapping is required
-    return list(tool.parameters.keys()) == ['input']
-
-
-def load_prompt(path: str) -> str:
-    with open(path, "r", encoding="utf-8") as f:
+    with open(file_path, "r") as f:
         return f.read()
