@@ -1,6 +1,7 @@
 # heuristic_rules.py
 
 import re
+from typing import Tuple, Optional
 
 # --- Slang and Abbreviation Normalization ---
 SLANG_MAP = {
@@ -72,7 +73,7 @@ def check_disallowed_topics(text: str) -> bool:
             return True
     return False
 
-def apply_input_heuristics(user_input: str) -> str:
+def apply_input_heuristics(user_input: str) -> Tuple[bool, Optional[str], Optional[str]]:
     """
     Applies a series of heuristic rules to sanitize and normalize user input.
 
@@ -85,8 +86,10 @@ def apply_input_heuristics(user_input: str) -> str:
         user_input (str): The raw input string from the user.
 
     Returns:
-        str: The processed and sanitized input string, or a rejection message
-             if a disallowed topic is detected.
+        Tuple[bool, Optional[str], Optional[str]]: A tuple containing:
+            - A boolean indicating if the input is allowed.
+            - The sanitized input string if allowed, otherwise None.
+            - A rejection message if the input is disallowed, otherwise None.
     """
     # 1. Normalize slang
     processed_input = normalize_slang(user_input)
@@ -96,9 +99,9 @@ def apply_input_heuristics(user_input: str) -> str:
 
     # 3. Check for disallowed topics
     if check_disallowed_topics(processed_input):
-        return "Input rejected due to containing a disallowed topic."
+        return False, None, "Input rejected due to containing a disallowed topic."
 
-    return processed_input
+    return True, processed_input, None
 
 # --- Example Usage ---
 if __name__ == '__main__':
@@ -110,5 +113,9 @@ if __name__ == '__main__':
     ]
 
     for text in test_inputs:
-        processed = apply_input_heuristics(text)
-        print(f"Original: '{text}'\nProcessed: '{processed}'\n")
+        allowed, sanitized, msg = apply_input_heuristics(text)
+        print(f"Original: '{text}'")
+        if allowed:
+            print(f"Sanitized: '{sanitized}'\n")
+        else:
+            print(f"Blocked: {msg}\n")

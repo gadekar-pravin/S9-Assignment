@@ -119,16 +119,20 @@ async def main():
                 break
 
             # 1. Apply heuristic rules to user input
-            modified_input = apply_input_heuristics(user_input)
-            if modified_input != user_input:
-                log("heuristic", f"Input modified: '{modified_input}'")
+            allowed, sanitized_input, rejection_message = apply_input_heuristics(user_input)
+            if not allowed:
+                print(f"⚠️ {rejection_message}")
+                continue
+
+            if sanitized_input != user_input:
+                log("heuristic", f"Input modified: '{sanitized_input}'")
 
             # 2. (Optional) Get selective context from memory
-            injected_context = await get_selectively_injected_context(modified_input)
+            injected_context = await get_selectively_injected_context(sanitized_input)
             if injected_context:
-                final_input = f"{injected_context}\nUser task: {modified_input}"
+                final_input = f"{injected_context}\nUser task: {sanitized_input}"
             else:
-                final_input = modified_input
+                final_input = sanitized_input
 
             # 3. Create Agent Context for this session
             # We pass full server descriptions for the perception phase
